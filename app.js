@@ -1,491 +1,255 @@
-const STORAGE_KEY = "java-interview-drill-progress-v1";
+const STORAGE_KEY = "jvmastry-progress-v2";
 
-const topicBlueprints = [
+const createSubject = (
+  topic,
+  concept,
+  difficulty,
+  likelihood,
+  core,
+  importance,
+  pitfall,
+  useCase
+) => ({
+  topic,
+  concept,
+  difficulty,
+  likelihood,
+  core,
+  importance,
+  pitfall,
+  useCase
+});
+
+const subjectBlueprints = [
+  createSubject("Platform Basics", "JDK, JRE, and JVM", "Beginner", "Very Common", "The JVM executes bytecode, the JRE bundles the JVM with runtime libraries, and the JDK adds development tools like javac, javadoc, and debuggers.", "Interviewers ask this to check whether you understand the split between runtime, tooling, and the virtual machine itself.", "A common mistake is saying the JVM and JDK are interchangeable or implying Java source code runs directly on the operating system.", "Bring it up when you explain how Java code is compiled, packaged, and finally executed."),
+  createSubject("Platform Basics", "platform independence and bytecode", "Beginner", "Very Common", "Java is considered platform independent because source code compiles into bytecode, and each operating system runs that bytecode through its own JVM implementation.", "It is one of the fastest ways for an interviewer to see whether you understand why Java became popular for cross-platform server development.", "Candidates often overstate this by claiming Java has zero platform differences, even though native libraries, file paths, and environment setup can still vary.", "Use it when answering why Java applications can move between environments with relatively little change."),
+  createSubject("Platform Basics", "the javac compilation pipeline", "Intermediate", "Common", "The javac compiler turns Java source into bytecode, performs type checking, resolves symbols, and emits .class files that the JVM can load and execute.", "It matters because strong answers connect source code, compilation, bytecode, and runtime execution instead of treating them as one black box.", "A common gap is forgetting that compilation errors are caught before runtime while other issues only appear when the JVM loads or executes classes.", "Mention it when describing build failures, type safety, or the role of compilation in Java tooling."),
+  createSubject("Platform Basics", "the classpath", "Beginner", "Common", "The classpath tells the JVM and tooling where to find compiled classes and jars needed at compile time or runtime.", "Classpath problems are common in real projects, so interviewers use this topic to see whether you understand how dependencies are discovered.", "Candidates often confuse the classpath with imports, even though imports are just source-level syntax while the classpath is about locating compiled code.", "Use it when explaining dependency resolution, NoClassDefFoundError, or why a jar works in one environment but not another."),
+  createSubject("Platform Basics", "the module path and JPMS", "Advanced", "Occasional", "The module path is used by the Java Platform Module System to load named modules with explicit dependencies and stronger encapsulation than the traditional classpath.", "It matters in interviews because it shows awareness of modern Java features and how modular boundaries differ from legacy jar loading.", "A common mistake is assuming modules replaced the classpath for every project; many applications still use plain classpaths successfully.", "Mention it if a role uses newer Java versions heavily or asks about encapsulation and dependency boundaries."),
+  createSubject("Platform Basics", "packages and imports", "Beginner", "Common", "Packages organize classes into namespaces, while imports let source files refer to classes without always writing fully qualified names.", "This matters because it reveals whether you understand how Java structures code and avoids naming collisions across large codebases.", "People sometimes think imports load code dynamically, but they only improve source readability and have no runtime loading behavior by themselves.", "Use it when explaining project structure, naming, or how Java avoids class-name clashes."),
+  createSubject("Platform Basics", "access modifiers", "Beginner", "Very Common", "Public, protected, package-private, and private control where classes, fields, and methods are visible, enforcing encapsulation boundaries.", "Interviewers use access modifiers to test whether you understand basic API design and how Java hides implementation detail.", "A common slip is mixing up protected with package-private or forgetting that top-level classes cannot be private or protected.", "Bring it up when discussing encapsulation, library design, or how you restrict mutability."),
+  createSubject("Platform Basics", "the main method and static entry point", "Beginner", "Common", "The JVM looks for a public static void main(String[] args) method because it can invoke it without creating an object and can pass command-line arguments through the String array.", "It matters because it connects language syntax to how Java applications start in the runtime.", "Candidates often memorize the signature without understanding why static is required or how args are supplied.", "Use it when explaining Java application startup or command-line programs."),
+  createSubject("Types & OOP", "primitive types versus reference types", "Beginner", "Very Common", "Primitive types store raw values like int and boolean, while reference types store references to objects allocated elsewhere.", "This matters because many Java questions on memory, equality, nullability, and performance depend on this distinction.", "A frequent mistake is treating references as objects themselves instead of pointers to objects managed by the JVM.", "Bring it up when discussing memory layout, null handling, or why wrappers exist."),
+  createSubject("Types & OOP", "wrapper classes and autoboxing", "Beginner", "Very Common", "Wrapper classes like Integer and Boolean let primitive values behave like objects, and autoboxing and unboxing convert between the two forms automatically.", "Interviewers ask this because wrappers show up in collections, generics, null handling, and API design.", "Candidates often ignore the fact that wrappers can be null and that repeated boxing can add overhead or surprise comparisons.", "Use it when explaining why List<int> does not exist or why Integer equality can behave differently from int equality."),
+  createSubject("Types & OOP", "pass-by-value in Java", "Intermediate", "Very Common", "Java is always pass-by-value. When you pass an object, Java copies the reference value, which means methods can mutate the object but cannot replace the caller's variable itself.", "This is a classic interview topic because it exposes whether someone can reason clearly about references and mutation.", "A common misconception is saying Java is pass-by-reference just because object state can be changed inside a method.", "Bring it up when an interview question involves modifying objects inside helper methods."),
+  createSubject("Types & OOP", "method overloading", "Beginner", "Very Common", "Overloading means defining multiple methods with the same name but different parameter lists inside the same class.", "It matters because it shows whether you understand compile-time method resolution and API ergonomics.", "A common mistake is confusing overloading with overriding or assuming return type alone can distinguish overloaded methods.", "Use it when discussing constructors, utility APIs, or compile-time polymorphism."),
+  createSubject("Types & OOP", "method overriding", "Beginner", "Very Common", "Overriding happens when a subclass provides its own implementation of an inherited method using the same signature and a compatible return type.", "Interviewers ask this to test runtime polymorphism and inheritance fundamentals.", "Candidates often forget that static methods are hidden rather than overridden and that access cannot usually be made more restrictive.", "Mention it when discussing polymorphism, template methods, or subclass behavior."),
+  createSubject("Types & OOP", "abstraction", "Beginner", "Very Common", "Abstraction means exposing essential behavior while hiding unnecessary implementation details behind clear contracts.", "It matters because strong Java design depends on separating what an object does from how it does it.", "A weak answer treats abstraction as just an abstract class instead of a broader design principle.", "Use it when discussing interfaces, clean APIs, or maintainable object-oriented design."),
+  createSubject("Types & OOP", "abstract classes versus interfaces", "Intermediate", "Very Common", "Abstract classes support shared state and implementation with single inheritance, while interfaces define contracts and support multiple inheritance of type plus default methods.", "This is a staple topic because it reveals whether you can choose the right modeling tool rather than memorizing syntax.", "Candidates often give outdated answers that ignore default methods or modern Java interface capabilities.", "Bring it up when explaining how you model shared behavior across multiple implementations."),
+  createSubject("Types & OOP", "composition over inheritance", "Intermediate", "Common", "Composition builds behavior by combining objects, while inheritance couples subclasses to a superclass hierarchy. Composition is often safer because it reduces tight coupling.", "Interviewers like this because it tests design judgment rather than syntax recall.", "A common mistake is treating inheritance as automatically object-oriented and composition as secondary, instead of comparing coupling and flexibility.", "Use it when explaining design tradeoffs or refactoring rigid class hierarchies."),
+  createSubject("Types & OOP", "polymorphism", "Beginner", "Very Common", "Polymorphism lets the same interface or superclass reference call different concrete implementations at runtime.", "It matters because Java design and frameworks often rely on substituting one implementation for another behind a stable contract.", "Candidates sometimes describe polymorphism only as method overloading and miss the more important runtime form.", "Use it when discussing interfaces, dependency inversion, or test doubles."),
+  createSubject("Types & OOP", "the final keyword", "Beginner", "Very Common", "Final prevents reassignment of variables, overriding of methods, or extension of classes depending on where it is applied.", "Interviewers ask this because final affects immutability, API stability, and inheritance design.", "A common gap is assuming final makes an object deeply immutable when it only prevents rebinding of the reference.", "Bring it up when discussing immutable objects, constants, or locked-down APIs."),
+  createSubject("Types & OOP", "the static keyword", "Beginner", "Very Common", "Static members belong to the class itself rather than to individual instances, which makes them useful for shared state, utilities, and factory methods.", "It matters because many Java APIs and startup semantics rely on static behavior.", "Candidates often overuse static and ignore how it increases global state and hurts testability when misapplied.", "Use it when explaining utility methods, the main method, or shared constants."),
+  createSubject("Types & OOP", "equals and hashCode", "Intermediate", "Very Common", "Equals defines logical equality and hashCode supports hash-based collections. Equal objects must produce the same hash code to behave correctly in maps and sets.", "This topic matters because it sits at the intersection of object identity, domain modeling, and collection behavior.", "A common mistake is overriding equals without hashCode, or basing either one on mutable fields used after insertion into a map.", "Bring it up when discussing domain entities, keys, or collection correctness."),
+  createSubject("Types & OOP", "Comparable versus Comparator", "Intermediate", "Common", "Comparable defines an object's natural ordering inside the class, while Comparator supplies external or alternate ordering logic.", "Interviewers ask this because it shows whether you understand reusable ordering strategies and API design.", "Candidates often remember the names but miss when to keep ordering inside the type versus outside it.", "Use it when describing sorting, TreeSet or TreeMap behavior, or domain-specific ordering."),
+  createSubject("Types & OOP", "enums", "Intermediate", "Common", "Enums are classes with a fixed set of instances, which means they can carry fields, methods, interfaces, and behavior while remaining type-safe constants.", "It matters because many developers still think enums are just fancy integers, which undersells how useful they are in Java.", "A common mistake is using strings or ints where an enum would give stronger domain safety and clearer code.", "Mention it when talking about state machines, fixed categories, or switch logic."),
+  createSubject("Strings & APIs", "String immutability", "Intermediate", "Very Common", "Strings are immutable, so every apparent modification creates a new String. This helps with safe sharing, hashing, caching, and string pooling.", "Interviewers ask this because it combines API behavior, memory reasoning, and language design.", "Candidates often stop at 'thread safety' and miss benefits around caching, security, and stable hash codes.", "Bring it up when asked why repeated concatenation can be expensive or why strings are safe as map keys."),
+  createSubject("Strings & APIs", "the string pool", "Intermediate", "Common", "The string pool stores shared string literals and interned strings so identical values can reuse the same object instead of allocating duplicates.", "This matters because it shows deeper understanding of memory optimization and why == can be misleading with strings.", "A common misconception is relying on pooling semantics for equality checks instead of using equals consistently.", "Use it when explaining String literals, intern, or why some identical strings share references."),
+  createSubject("Strings & APIs", "StringBuilder versus StringBuffer", "Beginner", "Common", "Both are mutable string builders. StringBuffer is synchronized for thread safety, while StringBuilder is usually faster in single-threaded code.", "Interviewers use this topic to test whether you understand mutability and simple concurrency tradeoffs.", "Candidates often say StringBuffer is always better because it is thread-safe without considering the overhead or actual threading model.", "Bring it up when discussing repeated concatenation or efficient string assembly."),
+  createSubject("Strings & APIs", "String.intern()", "Advanced", "Rare", "String.intern() asks the JVM to use the canonical pooled instance for a string value, which can save memory in some narrow cases.", "It matters mainly as a depth signal. Knowing it exists is useful, but it is not a must-know topic for most interviews.", "A common mistake is recommending intern everywhere without considering memory pressure, lookup overhead, or whether pooling really helps.", "Mention it only when discussing advanced memory behavior or highly repetitive string datasets."),
+  createSubject("Strings & APIs", "text blocks", "Beginner", "Occasional", "Text blocks are multiline string literals that make embedded JSON, SQL, HTML, or templates much easier to read than heavily escaped normal strings.", "They matter because modern Java interviews increasingly expect some awareness of post-Java-8 language improvements.", "Candidates sometimes over-explain them as a runtime feature when they are mostly a readability improvement in source code.", "Use it when describing readable multiline literals in newer Java versions."),
+  createSubject("Strings & APIs", "varargs", "Beginner", "Common", "Varargs let a method accept zero or more arguments of the same type, which the compiler packages into an array at the call site.", "It matters because many standard Java APIs use varargs and it reflects comfort with method signatures.", "A common mistake is forgetting that varargs still become an array and can have ambiguity with overloaded methods.", "Bring it up when discussing convenient APIs or method signature design."),
+  createSubject("Strings & APIs", "Optional", "Intermediate", "Common", "Optional models presence or absence for return values and encourages callers to handle missing data explicitly instead of depending on null.", "Interviewers ask this because Optional sits at the boundary between API design, readability, and null safety.", "A common mistake is using Optional as a field, parameter, or collection element when plain design choices are clearer.", "Use it when discussing null handling or expressive return types."),
+  createSubject("Strings & APIs", "annotations", "Intermediate", "Common", "Annotations attach metadata to classes, methods, fields, and parameters so frameworks, tools, or the compiler can process extra information.", "It matters because annotations are everywhere in modern Java, from tests to dependency injection to code generation.", "Candidates often treat annotations as magic and skip the idea that they are metadata interpreted by some processor or framework.", "Mention it when describing framework configuration, custom metadata, or compile-time tools."),
+  createSubject("Exceptions", "checked versus unchecked exceptions", "Intermediate", "Very Common", "Checked exceptions must be handled or declared and typically model recoverable conditions, while unchecked exceptions represent programming errors or invalid state.", "Interviewers ask this because exception design strongly affects API clarity and error handling style.", "A common mistake is claiming checked exceptions are always better or always worse instead of discussing tradeoffs and caller burden.", "Use it when discussing API design, validation failures, or recoverability."),
+  createSubject("Exceptions", "throw versus throws", "Beginner", "Common", "Throw is the statement that actually throws an exception object, while throws declares that a method may let certain exceptions escape.", "It matters because even simple exception questions test whether you understand syntax and flow clearly.", "Candidates sometimes memorize the keywords without understanding the difference between declaring and actually signaling an error.", "Bring it up when explaining exception propagation or method contracts."),
+  createSubject("Exceptions", "try-catch-finally", "Beginner", "Very Common", "Try contains risky code, catch handles matching exceptions, and finally runs cleanup logic whether or not an exception occurred.", "Interviewers use this topic because it tests basic control flow and resource-management understanding.", "A common mistake is assuming finally always runs no matter what, even though abrupt JVM termination can bypass it.", "Use it when explaining cleanup, error handling, or control flow after failures."),
+  createSubject("Exceptions", "try-with-resources", "Beginner", "Very Common", "Try-with-resources automatically closes resources that implement AutoCloseable, reducing cleanup boilerplate and leak risk.", "It matters because it is the idiomatic Java way to manage files, streams, sockets, and similar resources.", "Candidates sometimes forget that resource closing can also throw exceptions and that suppressed exceptions may be attached.", "Bring it up when discussing file I/O, JDBC, or safer cleanup patterns."),
+  createSubject("Exceptions", "AutoCloseable", "Intermediate", "Common", "AutoCloseable is the contract that lets objects participate in try-with-resources by exposing a close() method.", "This matters because it connects interface design to safe resource handling patterns.", "A common mistake is thinking only standard library resources can use try-with-resources; your own types can implement AutoCloseable too.", "Use it when explaining custom resource wrappers or deterministic cleanup."),
+  createSubject("Exceptions", "custom exceptions", "Intermediate", "Common", "Custom exceptions model domain-specific failure cases and can make APIs clearer when generic IllegalStateException or RuntimeException would be too vague.", "Interviewers ask this to see whether you think about error semantics, not just control flow.", "A common mistake is creating deep exception hierarchies with no clear handling value or wrapping everything in meaningless custom types.", "Bring it up when discussing expressive APIs or domain-specific error handling."),
+  createSubject("Generics & Collections", "generics and type safety", "Intermediate", "Very Common", "Generics let you parameterize types so the compiler can catch mismatched usage early and reduce unsafe casts at runtime.", "This matters because generics are central to modern Java collection APIs and type-safe library design.", "A common mistake is describing generics as purely runtime behavior even though most of their benefits are compile-time guarantees.", "Use it when discussing collections, APIs, or why raw types are discouraged."),
+  createSubject("Generics & Collections", "type erasure", "Advanced", "Common", "Java implements generics with type erasure, which means most generic type information is removed at runtime and compiled into ordinary classes plus casts and bridge methods where needed.", "Interviewers ask this to test deeper understanding of why Java generics behave differently from reified generic systems.", "A common mistake is expecting runtime checks like new T() or instanceof List<String> to work the way they would in fully reified systems.", "Mention it when explaining generic limitations, reflection quirks, or why overloading on generic parameters can fail."),
+  createSubject("Generics & Collections", "generic invariance", "Advanced", "Common", "In Java, List<Integer> is not a subtype of List<Number>. Generic types are invariant unless you use wildcards to widen what a method accepts.", "This matters because many interview questions on API design and compiler errors come back to invariance.", "A common mistake is assuming inheritance between element types automatically carries over to the generic containers.", "Use it when explaining why wildcard bounds exist or why collection APIs need careful type signatures."),
+  createSubject("Generics & Collections", "PECS with wildcards", "Advanced", "Occasional", "PECS means producer extends, consumer super. Use ? extends when you only read values out and ? super when you mainly write values in.", "It matters because it shows you can design flexible generic APIs instead of fighting the compiler.", "Candidates often memorize the slogan without relating it to whether the structure is producing values, consuming values, or both.", "Bring it up when discussing reusable library methods or generic collection helpers."),
+  createSubject("Generics & Collections", "List, Set, and Map", "Beginner", "Very Common", "List preserves order and allows duplicates, Set enforces uniqueness, and Map stores key-value pairs keyed by unique keys.", "This matters because it is one of the most common interview entry points into Java collections design.", "A common mistake is describing Map as a kind of Collection rather than a separate abstraction in the Java Collections Framework.", "Use it when explaining data-structure choices in Java code."),
+  createSubject("Generics & Collections", "ArrayList versus LinkedList", "Intermediate", "Common", "ArrayList is usually better for indexed access and memory locality, while LinkedList is rarely preferable outside niche insertion or removal patterns through iterators.", "Interviewers ask this because it tests whether you understand data-structure tradeoffs beyond API names.", "A common mistake is assuming LinkedList is generally faster for inserts without considering traversal cost and cache behavior.", "Bring it up when discussing performance tradeoffs in collection choice."),
+  createSubject("Generics & Collections", "HashMap internals", "Advanced", "Very Common", "HashMap uses hash codes to place keys into buckets and uses equals to disambiguate keys within a bucket, with collision handling that can switch from linked structures to tree bins in heavy collisions.", "It matters because HashMap sits at the center of many Java interviews on equality, performance, and data structure behavior.", "Candidates often mention hashing but forget the equally important role of equals or the effect of poor hash distribution.", "Use it when discussing map lookup performance, key design, or collision behavior."),
+  createSubject("Generics & Collections", "fail-fast iterators", "Intermediate", "Common", "Fail-fast iterators detect structural modification outside the iterator and usually throw ConcurrentModificationException to surface unsafe usage early.", "Interviewers ask this because it tests whether you understand collection iteration guarantees and modification rules.", "A common mistake is assuming fail-fast is a hard concurrency guarantee when it is really a best-effort safety mechanism.", "Bring it up when discussing iteration, removal patterns, or concurrent modification."),
+  createSubject("Generics & Collections", "immutable collections", "Intermediate", "Common", "Immutable collections cannot be structurally modified after creation, which simplifies reasoning, sharing, and defensive API design.", "This matters because immutability is one of the easiest ways to reduce bugs and coordination costs in Java systems.", "Candidates sometimes confuse unmodifiable views with truly immutable underlying data structures.", "Use it when discussing defensive copies, safe sharing, or API design."),
+  createSubject("Generics & Collections", "HashSet versus TreeSet", "Intermediate", "Common", "HashSet uses hashing and has no sort order, while TreeSet keeps elements sorted using natural ordering or a Comparator.", "It matters because collection choice depends on whether you need uniqueness only or also deterministic ordering and range operations.", "A common mistake is focusing only on uniqueness and ignoring the cost and ordering behavior differences.", "Bring it up when discussing sorted results or uniqueness constraints."),
+  createSubject("Generics & Collections", "Collections.unmodifiableList versus List.of", "Intermediate", "Occasional", "Collections.unmodifiableList creates a read-only view over an existing list, while List.of creates an unmodifiable list instance that also rejects null elements.", "Interviewers use this to test modern Java knowledge and whether you understand views versus owned immutable values.", "A common mistake is treating an unmodifiable view as a deep immutable snapshot even though the wrapped list can still change elsewhere.", "Mention it when discussing immutable API returns in modern Java."),
+  createSubject("Streams & Functional", "lambda expressions", "Beginner", "Common", "Lambda expressions provide concise implementations of single-method interfaces, making behavior easier to pass around as data.", "It matters because lambdas changed how Java expresses callbacks, stream logic, and short functional-style operations.", "Candidates sometimes explain lambdas as if Java became purely functional instead of seeing them as a syntax and API improvement.", "Bring it up when discussing Streams, comparators, or event-driven code."),
+  createSubject("Streams & Functional", "functional interfaces", "Intermediate", "Common", "A functional interface has exactly one abstract method and can therefore be implemented with a lambda or method reference.", "Interviewers ask this because it connects language features like lambdas to the interfaces they target.", "A common mistake is forgetting that default methods do not break functional-interface eligibility because only abstract methods count.", "Use it when explaining Consumer, Supplier, Function, Predicate, or your own callback contracts."),
+  createSubject("Streams & Functional", "method references", "Beginner", "Common", "Method references are shorthand forms that point to existing methods when they already match a target functional interface signature.", "It matters because it shows fluency with readable Java 8+ idioms rather than just raw lambda syntax.", "A common mistake is using method references when they make code less clear or misunderstanding the different forms like instance versus static references.", "Bring it up when discussing clean stream pipelines or concise callback code."),
+  createSubject("Streams & Functional", "stream laziness", "Intermediate", "Common", "Most intermediate stream operations are lazy, meaning they do not run until a terminal operation like collect, reduce, or forEach consumes the pipeline.", "This matters because many stream bugs and performance surprises come from misunderstanding when work actually executes.", "Candidates often assume each stream method runs immediately instead of seeing the pipeline as deferred computation.", "Use it when explaining why a stream chain appears to do nothing without a terminal operation."),
+  createSubject("Streams & Functional", "map, filter, and reduce", "Intermediate", "Very Common", "Map transforms each element, filter removes elements based on a predicate, and reduce combines elements into one result or summary.", "Interviewers ask this because it quickly reveals whether you understand the core vocabulary of Java streams.", "A common mistake is using reduce where a clearer collector or simpler loop would express the intention better.", "Bring it up when discussing data processing pipelines in modern Java."),
+  createSubject("Streams & Functional", "collectors like groupingBy", "Intermediate", "Common", "Collectors turn stream pipelines into concrete results, and groupingBy is a collector that aggregates elements by a classifier into a map of groups.", "It matters because real stream usage is often more about collection and aggregation than about simple mapping alone.", "A common mistake is building overly clever collector pipelines when straightforward code would be easier to maintain.", "Use it when describing summaries, grouping, counting, or aggregation tasks."),
+  createSubject("Streams & Functional", "parallel streams", "Advanced", "Occasional", "Parallel streams split work across the common ForkJoinPool, which can help for large CPU-bound workloads but often hurts when tasks are tiny, blocking, or stateful.", "Interviewers ask this to test judgment, because parallelism is rarely free and Java developers need to understand when not to use it.", "A common mistake is assuming .parallel() is an automatic performance upgrade without considering workload size and thread-pool side effects.", "Mention it when comparing simple sequential processing with controlled concurrency."),
+  createSubject("Concurrency", "threads versus processes", "Beginner", "Common", "Threads share a process's memory space, while separate processes have isolated memory and usually communicate more explicitly through inter-process mechanisms.", "It matters because concurrency questions often start by testing whether you know what is actually sharing memory in Java.", "A common mistake is treating threads as completely isolated units or ignoring the risks created by shared mutable memory.", "Use it when explaining why thread-safety matters inside a single Java process."),
+  createSubject("Concurrency", "synchronized", "Intermediate", "Very Common", "Synchronized provides mutual exclusion using a monitor and also establishes visibility guarantees when threads enter and exit synchronized sections.", "Interviewers ask this because it is the foundational Java concurrency primitive and ties into both locking and memory visibility.", "A common mistake is describing synchronized only as locking and missing the happens-before visibility effect.", "Bring it up when discussing critical sections, race conditions, or simple thread-safe code."),
+  createSubject("Concurrency", "volatile", "Advanced", "Common", "Volatile guarantees visibility and ordering for a variable across threads, but it does not make compound operations like increment atomic.", "It matters because many concurrency interview questions hinge on the difference between visibility and atomicity.", "Candidates often recommend volatile for counters or multi-step invariants when atomic classes or locks are actually required.", "Use it when describing flags, publication, or simple state that does not need compound atomic updates."),
+  createSubject("Concurrency", "atomic classes", "Advanced", "Common", "Atomic classes like AtomicInteger provide lock-free atomic updates for simple shared state by using compare-and-swap style operations under the hood.", "Interviewers use this to test whether you know alternatives to coarse locking for simple concurrency problems.", "A common mistake is assuming atomics automatically solve larger invariants that span multiple variables or operations.", "Mention it when discussing counters, sequence numbers, or simple concurrent state transitions."),
+  createSubject("Concurrency", "race conditions and deadlocks", "Intermediate", "Very Common", "Race conditions happen when outcomes depend on unsafe thread interleavings, while deadlocks occur when threads wait forever on locks held by each other.", "This matters because interviewers want to know whether you can reason about correctness under concurrency, not just name APIs.", "A common mistake is lumping all concurrency bugs together instead of distinguishing lost updates, stale reads, starvation, and deadlock patterns.", "Bring it up when describing production incidents or safe locking strategies."),
+  createSubject("Concurrency", "ExecutorService", "Intermediate", "Common", "ExecutorService manages task execution using reusable thread pools, helping you separate task submission from low-level thread creation.", "Interviewers ask this because real Java applications rarely spawn raw threads for every unit of work.", "A common mistake is using thread pools without thinking about sizing, shutdown, or whether tasks are CPU-bound versus I/O-bound.", "Use it when discussing background work, bounded concurrency, or service lifecycle management."),
+  createSubject("Concurrency", "Future versus CompletableFuture", "Advanced", "Common", "Future mainly represents an eventual result you can wait for, while CompletableFuture also supports explicit completion and composition of asynchronous stages.", "It matters because async Java code often becomes much clearer when you understand the jump from blocking futures to composable futures.", "A common mistake is using CompletableFuture chains but then blocking immediately, which throws away much of the async benefit.", "Bring it up when discussing asynchronous workflows or combining dependent tasks."),
+  createSubject("Concurrency", "immutability and thread safety", "Intermediate", "Common", "Immutable objects are naturally easier to share across threads because their state cannot change after construction.", "Interviewers ask this because one of the best concurrency strategies is to avoid shared mutable state altogether.", "A common mistake is focusing only on locks and forgetting that immutability can remove the need for coordination entirely.", "Use it when discussing DTOs, value objects, or safe publication."),
+  createSubject("Concurrency", "virtual threads", "Advanced", "Occasional", "Virtual threads are lightweight threads managed by the JVM that make request-per-task or request-per-thread styles more scalable for blocking workloads.", "It matters because newer Java interviews may ask about Loom-era concurrency and how it changes traditional thread-cost assumptions.", "A common mistake is assuming virtual threads make all concurrency concerns disappear; shared mutable state and synchronization rules still matter.", "Mention it when discussing modern Java concurrency, especially for server workloads with lots of waiting."),
+  createSubject("JVM & Memory", "heap versus stack", "Beginner", "Very Common", "The heap stores objects and arrays shared through references, while each thread's stack stores call frames, local variables, and method execution state.", "This matters because many memory and lifecycle questions depend on whether data lives in object memory or in a thread's call stack.", "A common mistake is assuming primitive values always live only on the stack or that object references and objects are the same thing.", "Bring it up when discussing recursion, object allocation, or memory errors."),
+  createSubject("JVM & Memory", "garbage collection", "Intermediate", "Very Common", "Garbage collection reclaims memory for objects that are no longer reachable so Java developers do not manually free most heap allocations.", "Interviewers ask this because it is a defining Java runtime feature and leads into performance and memory reasoning.", "A common mistake is saying GC prevents all memory leaks when logical retention can still keep unused objects reachable.", "Use it when explaining memory management, pause tradeoffs, or why Java code still needs lifecycle discipline."),
+  createSubject("JVM & Memory", "minor versus major garbage collection", "Advanced", "Occasional", "Minor collections usually reclaim young-generation objects, while major or old-generation work deals with longer-lived objects and can be more expensive.", "It matters because generational behavior explains why short-lived allocations are often cheap and why some pauses hurt more than others.", "Candidates often speak about 'GC' generically without understanding that not all collections touch the same regions or cost the same.", "Mention it when discussing heap behavior or tuning tradeoffs in JVM-heavy roles."),
+  createSubject("JVM & Memory", "memory leaks in Java", "Intermediate", "Common", "Java can still leak memory when objects remain strongly reachable through caches, listeners, static collections, or long-lived references even though the program no longer needs them.", "Interviewers ask this to test whether you understand that GC only frees unreachable objects, not merely unused ones in a business sense.", "A common mistake is assuming managed memory means leaks cannot happen at all.", "Use it when discussing caches, retention paths, or debugging high heap usage."),
+  createSubject("JVM & Memory", "class loaders", "Advanced", "Occasional", "Class loaders locate and load class definitions, and separate class-loader hierarchies can create isolation boundaries even for classes with the same name.", "It matters because class loading underpins plugins, containers, hot-reload behavior, and some subtle runtime bugs.", "A common mistake is treating class loading as a one-time global action instead of something influenced by different loaders and delegation.", "Mention it when talking about modular systems, application servers, or reflection-heavy frameworks."),
+  createSubject("JVM & Memory", "JIT compilation", "Advanced", "Common", "The Just-In-Time compiler observes hot code paths and compiles frequently executed bytecode into optimized machine code during runtime.", "Interviewers ask this because it shows you understand why Java can perform well despite starting from bytecode.", "A common mistake is thinking Java is either only interpreted or only compiled; in practice the JVM uses staged runtime compilation and optimization.", "Use it when discussing warmup, startup cost, or runtime performance."),
+  createSubject("JVM & Memory", "metaspace", "Advanced", "Rare", "Metaspace stores class metadata in native memory and replaced the old permanent generation in modern JVMs.", "It matters mostly as a deeper JVM-internals topic that occasionally appears in senior or performance-focused interviews.", "A common mistake is speaking about PermGen as if it still exists unchanged in modern Java versions.", "Mention it when explaining class metadata memory or class-loader leaks."),
+  createSubject("JVM & Memory", "the Java Memory Model", "Advanced", "Rare", "The Java Memory Model defines visibility and ordering guarantees across threads and explains when writes by one thread must become observable to another.", "Interviewers ask this to go beyond APIs and see whether you understand the formal rules behind synchronized, volatile, and safe publication.", "A common mistake is hand-waving with 'the CPU eventually sees it' instead of grounding answers in happens-before relationships.", "Bring it up when discussing visibility bugs, publication, or advanced concurrency correctness."),
+  createSubject("JVM & Memory", "OutOfMemoryError versus StackOverflowError", "Intermediate", "Common", "OutOfMemoryError signals that the JVM cannot allocate required memory, while StackOverflowError usually comes from exhausting a thread stack through deep or infinite recursion.", "This matters because both are common interview examples of different memory failure modes.", "A common mistake is describing both as generic 'memory issues' without distinguishing heap pressure from stack exhaustion.", "Use it when discussing recursion, leaks, or resource limits."),
+  createSubject("Advanced Features", "reflection", "Advanced", "Common", "Reflection lets Java inspect and invoke classes, fields, methods, and constructors at runtime even without compile-time coupling.", "It matters because many frameworks rely on reflection, and interviewers want to know both its power and its tradeoffs.", "A common mistake is treating reflection as free convenience instead of acknowledging the costs in encapsulation, performance, and maintainability.", "Bring it up when discussing frameworks, dependency injection, serialization, or dynamic tooling."),
+  createSubject("Advanced Features", "records", "Intermediate", "Common", "Records are concise immutable data carriers that automatically provide a canonical constructor, accessors, equals, hashCode, and toString.", "They matter because modern Java interviews increasingly expect awareness of language features introduced after Java 8.", "A common mistake is assuming records are just syntax sugar for mutable POJOs rather than a stronger semantic commitment to data-carrier style objects.", "Use it when discussing DTOs, event payloads, or immutable value types."),
+  createSubject("Advanced Features", "sealed classes", "Advanced", "Occasional", "Sealed classes restrict which classes or interfaces may extend or implement them, making domain hierarchies more explicit and safer for exhaustive reasoning.", "Interviewers ask this to see whether you understand modern language support for closed polymorphic hierarchies.", "A common mistake is using sealed classes where the hierarchy needs to stay open to extension, which defeats the feature's main value.", "Mention it when discussing domain modeling, algebraic-style hierarchies, or pattern matching."),
+  createSubject("Advanced Features", "pattern matching for instanceof and switch", "Intermediate", "Occasional", "Pattern matching reduces boilerplate by combining type tests with variable binding and, in newer switch forms, can make branching on known shapes more expressive.", "It matters because it shows you know how newer Java versions are improving readability around conditional logic.", "A common mistake is overselling it as changing Java's type system rather than seeing it as syntax and control-flow improvement.", "Use it when discussing modern Java readability improvements or sealed-class hierarchies."),
+  createSubject("Advanced Features", "serialization and the transient keyword", "Advanced", "Rare", "Serialization converts object state into a transportable or storable form, and transient marks fields that default Java serialization should skip.", "It matters mostly as a legacy or niche topic, but it still appears sometimes because many older Java systems used built-in serialization heavily.", "A common mistake is assuming transient is a general security feature rather than a serialization-specific instruction.", "Mention it when discussing legacy systems, object transport, or why built-in serialization is often avoided in newer designs.")
+];
+
+const promptFamilies = {
+  explain: [
+    (concept) => `What is ${concept} in Java?`,
+    (concept) => `How would you explain ${concept} in a Java interview?`
+  ],
+  importance: [
+    (concept) => `Why does ${concept} matter in Java interviews or production code?`,
+    (concept) => `Why should a Java developer understand ${concept}?`
+  ],
+  pitfall: [
+    (concept) => `What mistake or nuance should you call out when discussing ${concept}?`,
+    (concept) => `What is a common misconception about ${concept}?`
+  ],
+  useCase: [
+    (concept) => `When would you deliberately bring up ${concept} in an interview answer?`,
+    (concept) => `Where does ${concept} become practically useful in Java code?`
+  ]
+};
+
+const baseQuestions = subjectBlueprints.flatMap((subject, subjectIndex) => {
+  const variants = [
+    {
+      prompt: promptFamilies.explain[subjectIndex % promptFamilies.explain.length](subject.concept),
+      answer: subject.core
+    },
+    {
+      prompt:
+        promptFamilies.importance[subjectIndex % promptFamilies.importance.length](subject.concept),
+      answer: subject.importance
+    },
+    {
+      prompt: promptFamilies.pitfall[subjectIndex % promptFamilies.pitfall.length](subject.concept),
+      answer: subject.pitfall
+    },
+    {
+      prompt: promptFamilies.useCase[subjectIndex % promptFamilies.useCase.length](subject.concept),
+      answer: subject.useCase
+    }
+  ];
+
+  return variants.map((variant, variantIndex) => ({
+    id: `q-${subjectIndex + 1}-${variantIndex + 1}`,
+    topic: subject.topic,
+    concept: subject.concept,
+    difficulty: subject.difficulty,
+    likelihood: subject.likelihood,
+    prompt: variant.prompt,
+    answer: variant.answer
+  }));
+});
+
+const scenarioTemplates = [
   {
-    topic: "Core Java",
-    items: [
-      ["Explain the difference between JDK, JRE, and JVM.", "The JVM executes bytecode, the JRE bundles the JVM plus runtime libraries, and the JDK adds developer tooling such as the compiler, debugger, and packaging tools.", "Beginner"],
-      ["Why is Java considered platform independent?", "Java source compiles to bytecode, and each platform provides a JVM implementation that knows how to execute that bytecode on its own operating system and hardware.", "Beginner"],
-      ["What is the purpose of the main method signature in Java?", "The JVM looks for a public static void main(String[] args) entry point because it can invoke it without creating an instance and can pass command-line arguments through the String array.", "Beginner"],
-      ["What is the difference between method overloading and method overriding?", "Overloading changes the parameter list in the same class, while overriding replaces inherited behavior in a subclass using the same signature and a compatible return type.", "Beginner"],
-      ["What are wrapper classes and why are they useful?", "Wrapper classes such as Integer and Boolean let primitive values behave like objects so they can be stored in collections, participate in generics, and expose utility methods.", "Beginner"],
-      ["What is autoboxing and unboxing?", "Autoboxing converts a primitive into its wrapper automatically, while unboxing extracts the primitive value from the wrapper when Java needs the primitive form.", "Beginner"],
-      ["What is the difference between == and equals in Java?", "== compares primitive values or object references, while equals is intended to compare logical equality and can be overridden to define domain-specific comparison.", "Beginner"],
-      ["Why are strings immutable in Java?", "Immutability makes strings thread-safe, cache-friendly for the string pool, secure for sensitive APIs like class loading and file paths, and simpler to use as hash keys.", "Intermediate"],
-      ["What is the string pool?", "The string pool is a JVM-managed cache of string literals and interned strings so identical string values can share the same object instance and reduce memory usage.", "Intermediate"],
-      ["When would you choose StringBuilder over String?", "Use StringBuilder when you are performing repeated mutations or concatenations because String creates a new immutable object for each change.", "Beginner"],
-      ["What is the difference between StringBuilder and StringBuffer?", "Both are mutable string builders, but StringBuffer is synchronized for thread safety while StringBuilder is usually faster in single-threaded code.", "Beginner"],
-      ["Explain pass-by-value in Java.", "Java always passes arguments by value. For object references, the copied value is the reference itself, so methods can mutate the object but cannot replace the caller's reference.", "Intermediate"],
-      ["What are varargs in Java and how do they work?", "Varargs let a method accept zero or more arguments of the same type, which the compiler packages into an array when the method is called.", "Beginner"],
-      ["What is the purpose of the final keyword on variables, methods, and classes?", "A final variable cannot be reassigned, a final method cannot be overridden, and a final class cannot be subclassed.", "Beginner"],
-      ["How does Java handle multiple inheritance?", "Java classes do not support multiple inheritance of implementation, but a class can implement multiple interfaces and inherit behavior from default methods carefully.", "Intermediate"],
-      ["What are records in Java and when are they useful?", "Records are concise immutable data carriers that automatically provide a constructor, accessors, equals, hashCode, and toString, making them useful for DTO-style models.", "Intermediate"],
-      ["What problem do sealed classes solve?", "Sealed classes restrict which classes or interfaces may extend or implement them, making hierarchies more explicit and safer for pattern matching and domain modeling.", "Advanced"],
-      ["What are text blocks in Java?", "Text blocks are multiline string literals that improve readability for embedded JSON, SQL, HTML, or any content that would be noisy with escaped newlines.", "Beginner"],
-      ["Explain the difference between checked and unchecked exceptions.", "Checked exceptions must be handled or declared and usually represent recoverable conditions, while unchecked exceptions extend RuntimeException and usually signal programming errors or invalid state.", "Intermediate"],
-      ["What is try-with-resources?", "Try-with-resources automatically closes resources that implement AutoCloseable, reducing boilerplate and preventing resource leaks.", "Beginner"],
-      ["What is the Optional type and when should it be used?", "Optional models an absent or present return value and is helpful for APIs where a missing value is valid, but it should not normally replace fields, method parameters, or collections.", "Intermediate"],
-      ["What is the difference between an abstract class and an interface?", "An abstract class can hold state and shared implementation with single inheritance, while an interface defines a contract and supports multiple inheritance of type.", "Beginner"],
-      ["What are default methods in interfaces?", "Default methods let interfaces ship a concrete implementation so APIs can evolve without breaking every existing implementer.", "Intermediate"],
-      ["What is the purpose of the static keyword?", "Static members belong to the class rather than an instance, making them appropriate for shared constants, utility methods, and factory-style behavior.", "Beginner"],
-      ["How do enums work in Java?", "Enums are full classes with a fixed set of instances, which means they can have fields, methods, constructors, and interfaces while still giving you type-safe constants.", "Beginner"],
-      ["When should you use composition over inheritance?", "Prefer composition when behavior should be assembled flexibly and independently because inheritance tightly couples subclasses to superclass implementation details.", "Intermediate"],
-      ["What does the transient keyword do?", "Transient marks a field so default Java serialization skips it, which is useful for sensitive, derived, or non-serializable state.", "Intermediate"],
-      ["What is the purpose of the volatile keyword?", "Volatile guarantees visibility of reads and writes across threads for a variable, but it does not make compound actions like increment atomic.", "Advanced"],
-      ["What is reflection and why should it be used carefully?", "Reflection allows runtime inspection and invocation of classes and members, but it weakens encapsulation, is slower than direct calls, and can complicate maintenance.", "Advanced"],
-      ["What are annotations in Java?", "Annotations attach metadata to code elements so tools, frameworks, and the compiler can inspect or process extra information.", "Beginner"]
+    topic: "Types & OOP",
+    difficulty: "Intermediate",
+    likelihood: "Very Common",
+    subjects: [
+      "pass-by-value in Java",
+      "equals and hashCode",
+      "abstract classes versus interfaces",
+      "composition over inheritance",
+      "polymorphism"
+    ],
+    stems: [
+      "A teammate gives a shaky explanation of {concept}. How would you correct it in an interview-style answer?",
+      "If an interviewer pushed back on your answer about {concept}, what nuance would you add?",
+      "How would you turn {concept} from a textbook answer into a practical Java example?"
     ]
   },
   {
-    topic: "Collections",
-    items: [
-      ["What is the difference between List, Set, and Map?", "A List preserves order and allows duplicates, a Set enforces uniqueness, and a Map stores key-value pairs with unique keys.", "Beginner"],
-      ["When would you choose ArrayList over LinkedList?", "ArrayList is better for indexed reads and memory efficiency, while LinkedList is rarely preferable unless you need frequent insertions and removals through iterators in the middle of the list.", "Intermediate"],
-      ["How does HashMap work internally?", "HashMap hashes the key to choose a bucket, then compares keys with equals within that bucket, using linked nodes or tree bins to resolve collisions.", "Intermediate"],
-      ["Why is it important to implement equals and hashCode together?", "Hash-based collections depend on both methods being consistent so logically equal objects land in the same bucket and remain retrievable.", "Intermediate"],
-      ["What is the difference between HashMap and ConcurrentHashMap?", "HashMap is not thread-safe, while ConcurrentHashMap supports concurrent access with fine-grained coordination and no single global lock for most operations.", "Intermediate"],
-      ["What is the difference between HashSet and TreeSet?", "HashSet stores elements based on hash codes with no sort order, while TreeSet keeps elements sorted using natural ordering or a comparator.", "Beginner"],
-      ["What is a fail-fast iterator?", "A fail-fast iterator detects structural modification outside the iterator and throws ConcurrentModificationException to surface unsafe concurrent changes early.", "Intermediate"],
-      ["What is the difference between Comparable and Comparator?", "Comparable defines an object's natural ordering inside the class, while Comparator provides external or alternate ordering strategies.", "Beginner"],
-      ["How do immutable collections help?", "Immutable collections prevent accidental mutation, make sharing safer across threads and layers, and simplify reasoning about program state.", "Beginner"],
-      ["What is the load factor in HashMap?", "The load factor controls how full the map can get before resizing, balancing memory usage against lookup performance.", "Advanced"],
-      ["What happens when many keys collide in a HashMap?", "Colliding entries share a bucket; in modern Java large collision chains can be treeified into balanced trees to keep lookups from degrading to linear scans.", "Advanced"],
-      ["What are weak references used for in collection-related code?", "Weak references allow objects to be garbage collected when nothing else strongly references them, which is useful for caches or metadata maps that should not prevent cleanup.", "Advanced"],
-      ["What is the difference between synchronized collections and concurrent collections?", "Synchronized wrappers serialize access around a backing collection, while concurrent collections are designed for scalable concurrent reads and writes with specialized internal strategies.", "Intermediate"],
-      ["Why can mutable keys be dangerous in a HashMap?", "If the fields used in equals or hashCode change after insertion, the map may no longer be able to find the entry in the expected bucket.", "Intermediate"],
-      ["When would LinkedHashMap be preferable to HashMap?", "LinkedHashMap preserves insertion order or access order, which makes it useful for predictable iteration and simple LRU-style caches.", "Intermediate"],
-      ["What is an EnumMap?", "EnumMap is a specialized map implementation for enum keys that is compact, fast, and usually better than a general-purpose HashMap for that use case.", "Intermediate"],
-      ["How does CopyOnWriteArrayList trade performance?", "It makes reads very cheap and thread-safe, but every write creates a fresh copy of the underlying array, so heavy write workloads are expensive.", "Advanced"],
-      ["What are NavigableMap and NavigableSet useful for?", "They provide sorted collections with range queries and neighbor lookups like floor, ceiling, lower, and higher.", "Intermediate"],
-      ["What is the difference between Arrays.asList and List.of?", "Arrays.asList returns a fixed-size list backed by the array, while List.of returns an unmodifiable list that rejects null elements.", "Intermediate"],
-      ["How would you remove duplicates while preserving insertion order?", "Use a LinkedHashSet or stream into a LinkedHashSet-backed collector so uniqueness is enforced without losing original order.", "Beginner"],
-      ["What is a priority queue and when is it useful?", "A priority queue orders elements by priority rather than insertion order, making it useful for schedulers, top-K problems, and graph algorithms.", "Intermediate"],
-      ["How do streams interact with collections?", "Streams provide a declarative way to process collection data with map, filter, reduce, grouping, and parallel execution when appropriate.", "Beginner"],
-      ["Why should collection implementations be exposed via interfaces?", "Returning interfaces like List or Map hides implementation detail and makes future substitutions easier without changing client code.", "Beginner"],
-      ["What is the cost of contains on different collection types?", "For HashSet it is typically constant time, for ArrayList it is linear, and for TreeSet it is logarithmic.", "Intermediate"],
-      ["When is a TreeMap a better choice than a HashMap?", "Use TreeMap when you need sorted keys, range queries, or predecessor and successor lookups instead of pure constant-time average access.", "Intermediate"],
-      ["What does Collections.unmodifiableList actually guarantee?", "It prevents mutation through that wrapper, but if the backing list changes elsewhere the wrapped view reflects those changes.", "Intermediate"],
-      ["What is the difference between shallow and deep copying a collection?", "A shallow copy duplicates the container structure but shares the same element references, while a deep copy duplicates the nested objects too.", "Intermediate"],
-      ["What is a Spliterator?", "A Spliterator is a traversal and partitioning abstraction designed to support efficient sequential and parallel stream processing.", "Advanced"],
-      ["How can poor hashCode implementations hurt performance?", "If many unequal objects produce the same hash code, lookups degrade because too many entries land in the same buckets.", "Intermediate"],
-      ["What is the role of collectors like groupingBy and partitioningBy?", "They transform stream results into aggregated structures such as grouped maps, partitions, summaries, or custom reductions.", "Beginner"]
+    topic: "Generics & Collections",
+    difficulty: "Advanced",
+    likelihood: "Common",
+    subjects: [
+      "HashMap internals",
+      "type erasure",
+      "generic invariance",
+      "PECS with wildcards",
+      "fail-fast iterators"
+    ],
+    stems: [
+      "What deeper follow-up would you expect after mentioning {concept} in a Java interview?",
+      "How would you explain the tradeoff behind {concept} without sounding overly academic?",
+      "What practical bug or design issue can {concept} help you explain?"
     ]
   },
   {
     topic: "Concurrency",
-    items: [
-      ["What is a thread in Java?", "A thread is an independent path of execution within a process, allowing multiple tasks to progress concurrently.", "Beginner"],
-      ["What is the difference between concurrency and parallelism?", "Concurrency is about managing multiple tasks that overlap in time, while parallelism means tasks actually run simultaneously on multiple cores.", "Beginner"],
-      ["Why is shared mutable state dangerous?", "Multiple threads can interleave reads and writes unpredictably, causing race conditions, stale reads, and corrupted invariants.", "Intermediate"],
-      ["What does synchronized do?", "Synchronized provides mutual exclusion on a monitor and establishes happens-before visibility guarantees when threads enter and exit the protected block or method.", "Intermediate"],
-      ["What is a race condition?", "A race condition happens when the program outcome depends on the timing of unsafely interleaved operations between threads.", "Beginner"],
-      ["What is deadlock?", "Deadlock occurs when threads wait forever on locks held by one another, often because they acquire shared resources in inconsistent order.", "Intermediate"],
-      ["How can you reduce deadlock risk?", "Use consistent lock ordering, keep critical sections small, avoid nested locks where possible, and prefer higher-level concurrency utilities.", "Intermediate"],
-      ["What is a thread pool?", "A thread pool reuses a bounded set of worker threads to execute tasks efficiently without paying the cost of creating a new thread each time.", "Beginner"],
-      ["When should you use ExecutorService?", "Use ExecutorService to manage asynchronous task execution, lifecycle, and resource limits instead of manually creating threads.", "Beginner"],
-      ["What is the difference between submit and execute?", "Execute runs a Runnable without returning a result, while submit returns a Future and can capture exceptions or return values.", "Intermediate"],
-      ["What is a Future?", "A Future represents the eventual result of an asynchronous task and lets you wait, cancel, or inspect completion state.", "Beginner"],
-      ["Why are CompletableFuture and reactive styles attractive?", "They allow you to compose asynchronous stages without blocking threads, which can improve throughput and readability for async workflows.", "Intermediate"],
-      ["What does volatile guarantee?", "Volatile guarantees visibility and ordering for reads and writes of that variable, but not atomicity for compound operations.", "Advanced"],
-      ["What is the happens-before relationship?", "It is the Java Memory Model rule that defines when one action's effects are guaranteed to be visible to another action in another thread.", "Advanced"],
-      ["What is atomicity and how do Atomic classes help?", "Atomicity means an operation completes as one indivisible step; AtomicInteger and related classes provide lock-free atomic updates for simple state changes.", "Intermediate"],
-      ["When is ReentrantLock preferable to synchronized?", "Use ReentrantLock when you need timed lock acquisition, interruptible waits, multiple condition variables, or more explicit lock management.", "Advanced"],
-      ["What are CountDownLatch and CyclicBarrier used for?", "CountDownLatch waits for a fixed number of events before proceeding, while CyclicBarrier lets a group of threads repeatedly wait for each other at synchronization points.", "Intermediate"],
-      ["What is a semaphore?", "A semaphore controls access to a limited number of permits, making it useful for throttling and resource pooling.", "Intermediate"],
-      ["What problem does BlockingQueue solve?", "BlockingQueue coordinates producers and consumers by waiting automatically when the queue is empty or full.", "Intermediate"],
-      ["What is thread starvation?", "Thread starvation happens when a thread rarely gets CPU time or lock access because other threads dominate the resource.", "Intermediate"],
-      ["How do parallel streams work and when should they be avoided?", "Parallel streams split work across the common ForkJoinPool, but they can hurt performance when tasks are small, blocking, stateful, or compete with other workloads.", "Advanced"],
-      ["What is the ForkJoin framework?", "ForkJoin supports divide-and-conquer tasks that split recursively and use work-stealing to balance load across worker threads.", "Advanced"],
-      ["What is false sharing?", "False sharing happens when independent variables on the same cache line are updated by different threads, causing unnecessary cache coherence traffic.", "Advanced"],
-      ["Why should interrupts be handled carefully?", "Interrupts are a cooperative cancellation signal, so swallowing them can make shutdown and cancellation logic unreliable.", "Advanced"],
-      ["What is a producer-consumer problem?", "It is a coordination pattern where producers create work items and consumers process them, often requiring safe buffering and backpressure.", "Beginner"],
-      ["How do immutable objects help concurrency?", "They eliminate synchronization needs for shared reads because their state never changes after construction.", "Beginner"],
-      ["What are thread-safe collections appropriate for?", "They help when multiple threads must share a collection, but you still need to reason about larger compound actions that span multiple operations.", "Intermediate"],
-      ["What is lock contention?", "Lock contention is the performance cost and delay caused when many threads compete for the same lock.", "Intermediate"],
-      ["What is a read-write lock?", "A read-write lock allows multiple concurrent readers but only one writer, which can help workloads dominated by reads.", "Advanced"],
-      ["What are virtual threads useful for?", "Virtual threads make it practical to run huge numbers of mostly blocking tasks with much lower overhead than platform threads, especially for request-per-thread server code.", "Advanced"]
+    difficulty: "Advanced",
+    likelihood: "Common",
+    subjects: [
+      "synchronized",
+      "volatile",
+      "atomic classes",
+      "Future versus CompletableFuture",
+      "immutability and thread safety"
+    ],
+    stems: [
+      "How would you explain {concept} to show real concurrency judgment rather than just vocabulary?",
+      "What wrong recommendation do candidates often make when discussing {concept}?",
+      "If asked for a production example of {concept}, what would you say?"
     ]
   },
   {
     topic: "JVM & Memory",
-    items: [
-      ["How does garbage collection work at a high level?", "The JVM identifies objects that are no longer reachable and reclaims their memory automatically, using algorithms tuned for throughput, latency, and heap behavior.", "Intermediate"],
-      ["What is the heap?", "The heap is the runtime memory area where objects and arrays are allocated and later reclaimed by the garbage collector.", "Beginner"],
-      ["What is the stack in Java?", "Each thread has its own stack containing method frames, local variables, and call history.", "Beginner"],
-      ["What causes a StackOverflowError?", "A StackOverflowError usually comes from deep or infinite recursion exhausting the thread's stack frames.", "Beginner"],
-      ["What causes an OutOfMemoryError?", "OutOfMemoryError occurs when the JVM cannot allocate required memory and recovery is typically difficult or impossible without reducing pressure or increasing limits.", "Intermediate"],
-      ["What is the difference between minor and major GC?", "Minor GC usually cleans young-generation objects, while major or old-generation collection handles longer-lived objects and can be more expensive.", "Advanced"],
-      ["Why are most objects cheap to collect?", "Most objects die young, so generational collectors optimize for quickly reclaiming short-lived allocations in the young generation.", "Intermediate"],
-      ["What is a memory leak in Java if GC exists?", "A Java memory leak happens when objects remain reachable unintentionally, so the collector cannot reclaim memory even though the application no longer needs those objects.", "Intermediate"],
-      ["How would you investigate high memory usage?", "Check heap usage trends, inspect GC logs, capture a heap dump, identify dominant object graphs, and trace why they remain reachable.", "Advanced"],
-      ["What does the class loader do?", "The class loader locates class definitions, loads bytecode, and participates in linking and initialization before the class is used.", "Intermediate"],
-      ["What is classpath vs module path?", "Classpath is the traditional way to locate classes and jars, while the module path supports the Java Platform Module System with explicit module boundaries.", "Advanced"],
-      ["What is JIT compilation?", "The Just-In-Time compiler turns frequently executed bytecode paths into optimized native machine code at runtime to improve performance.", "Intermediate"],
-      ["What is escape analysis?", "Escape analysis lets the JVM determine whether an object can be optimized away, stack-allocated conceptually, or synchronized less aggressively if it does not escape the current context.", "Advanced"],
-      ["What is metaspace?", "Metaspace is the native-memory area that stores class metadata in modern JVMs, replacing the old permanent generation.", "Intermediate"],
-      ["Why might String.intern be dangerous if overused?", "It can increase pressure on the string pool and add lookup overhead, so indiscriminate interning may hurt rather than help.", "Advanced"],
-      ["How does GC tuning involve tradeoffs?", "Collectors and heap settings trade throughput, pause time, memory footprint, and predictability, so tuning depends on workload goals.", "Advanced"],
-      ["What is the purpose of JVM flags like -Xms and -Xmx?", "They set the initial and maximum heap size, shaping startup memory footprint and how much the heap can grow.", "Intermediate"],
-      ["What does safepoint mean?", "A safepoint is a JVM state where all threads are in a known place so the runtime can perform global operations such as GC or deoptimization.", "Advanced"],
-      ["What is deoptimization?", "Deoptimization is the JVM's ability to fall back from optimized machine code to interpreted or less optimized execution when assumptions become invalid.", "Advanced"],
-      ["Why is object allocation often fast in Java?", "Allocations are usually cheap because the JVM often uses thread-local allocation buffers and bump-the-pointer allocation in contiguous heap regions.", "Advanced"],
-      ["What is a heap dump?", "A heap dump is a snapshot of heap memory at a point in time used to analyze object retention and memory issues.", "Intermediate"],
-      ["What is profiling and when would you use it?", "Profiling measures runtime behavior such as CPU time, allocations, or lock contention to guide performance investigation.", "Intermediate"],
-      ["What is the difference between G1, ZGC, and Shenandoah at a high level?", "G1 aims for balanced pause targets on large heaps, while ZGC and Shenandoah focus on very low pause times with more concurrent work.", "Advanced"],
-      ["What is the Java Memory Model?", "It defines how threads interact through memory and what visibility and ordering guarantees synchronization constructs provide.", "Advanced"],
-      ["Why can final fields improve safety?", "Properly constructed objects with final fields get stronger initialization safety guarantees, which helps avoid seeing partially initialized state across threads.", "Advanced"],
-      ["What is a reference queue used for?", "ReferenceQueue works with soft, weak, or phantom references so cleanup or bookkeeping can happen after the collector determines referents are reclaimable.", "Advanced"],
-      ["What is the difference between soft, weak, and phantom references?", "Soft references are useful for memory-sensitive caches, weak references are cleared aggressively once only weakly reachable, and phantom references support post-mortem cleanup with a reference queue.", "Advanced"],
-      ["What is bytecode verification?", "The JVM verifies bytecode to ensure type safety and structural correctness before execution, reducing the risk of invalid or malicious code breaking runtime assumptions.", "Advanced"],
-      ["Why might startup time matter for JVM applications?", "Cold startup affects CLI tools, serverless workloads, and autoscaling responsiveness, so class loading, JIT warmup, and dependency size all matter.", "Intermediate"],
-      ["What is CDS or class data sharing?", "Class data sharing preloads and shares class metadata across JVM processes to reduce startup time and memory footprint.", "Advanced"]
-    ]
-  },
-  {
-    topic: "Spring",
-    items: [
-      ["What is dependency injection?", "Dependency injection supplies a class with its collaborators from the outside rather than letting it construct them directly, improving testability and loose coupling.", "Beginner"],
-      ["What does the Spring container manage?", "The Spring container creates, wires, configures, and manages the lifecycle of beans in the application context.", "Beginner"],
-      ["What is the difference between @Component, @Service, and @Repository?", "All are stereotype annotations for component scanning, but @Service signals business logic, @Repository signals persistence and can enable exception translation, and @Component is the general-purpose option.", "Beginner"],
-      ["What is @Autowired and what is the preferred injection style?", "Autowired resolves dependencies from the context, and constructor injection is preferred because it makes required dependencies explicit and supports immutability.", "Beginner"],
-      ["What is Spring Boot and why is it popular?", "Spring Boot reduces setup friction with opinionated auto-configuration, starter dependencies, production-ready actuator features, and embedded servers.", "Beginner"],
-      ["What is auto-configuration?", "Auto-configuration conditionally creates beans based on the classpath, properties, and existing beans so common setups work with minimal manual wiring.", "Intermediate"],
-      ["What are Spring profiles?", "Profiles let you activate different beans or properties for environments such as local, test, staging, and production.", "Beginner"],
-      ["What is the difference between singleton and prototype scope?", "Singleton creates one bean per application context, while prototype creates a new bean each time it is requested.", "Intermediate"],
-      ["How does @Transactional work?", "Transactional uses proxies or AOP to start, commit, or roll back database transactions around method execution according to configuration and exceptions.", "Intermediate"],
-      ["Why can self-invocation break @Transactional behavior?", "A method call within the same instance bypasses the proxy, so the transactional advice may never run.", "Advanced"],
-      ["What is the difference between @Controller and @RestController?", "RestController combines @Controller and @ResponseBody so return values are written directly to the HTTP response body rather than resolving a view.", "Beginner"],
-      ["What is the purpose of @Configuration and @Bean?", "Configuration marks a class that declares bean definitions, and Bean tells Spring to register the returned object as a managed bean.", "Intermediate"],
-      ["What is component scanning?", "Component scanning searches configured packages for stereotype-annotated classes and registers them as beans automatically.", "Beginner"],
-      ["How does Spring handle configuration properties?", "It can bind externalized properties from files, env vars, or command-line arguments into strongly typed classes using @ConfigurationProperties or inject them directly with @Value.", "Intermediate"],
-      ["What is Actuator?", "Actuator adds production endpoints and metrics for health, info, tracing, and operational insight into a running Spring Boot app.", "Beginner"],
-      ["What is Spring Data JPA?", "Spring Data JPA generates repository implementations and query behavior on top of JPA, reducing boilerplate for CRUD and common query patterns.", "Intermediate"],
-      ["What is the difference between CrudRepository and JpaRepository?", "JpaRepository extends simpler repository interfaces with JPA-specific features like flushing and batch operations.", "Intermediate"],
-      ["What is lazy loading in JPA and why can it surprise you?", "Lazy loading defers fetching related entities until accessed, which can trigger extra queries or fail outside an open persistence context.", "Intermediate"],
-      ["What is the N+1 query problem?", "It happens when loading one set of parent rows triggers an extra query per parent for related data, creating avoidable database overhead.", "Intermediate"],
-      ["How can you address the N+1 query problem in Spring applications?", "Use fetch joins, entity graphs, batching, tailored DTO queries, or adjust access patterns so related data is loaded intentionally.", "Advanced"],
-      ["What does @EnableScheduling support?", "It enables scheduled tasks such as fixed-rate, fixed-delay, or cron-based jobs through annotations like @Scheduled.", "Intermediate"],
-      ["What is the difference between WebMVC and WebFlux?", "WebMVC is the traditional servlet-based model, while WebFlux is a reactive stack designed for non-blocking pipelines and backpressure-aware streams.", "Advanced"],
-      ["What is BeanPostProcessor used for?", "A BeanPostProcessor can inspect or modify beans before and after initialization, often powering framework behavior and custom extensions.", "Advanced"],
-      ["How does Spring Security fit into a Boot app?", "Spring Security provides authentication, authorization, filter chains, and policy enforcement for HTTP endpoints and method-level security.", "Intermediate"],
-      ["What is a filter chain in Spring Security?", "It is an ordered sequence of servlet filters that inspect, authenticate, authorize, and otherwise process incoming requests before controller code runs.", "Advanced"],
-      ["What is the difference between @Mock and @MockBean in tests?", "Mock creates a Mockito mock in plain unit tests, while MockBean replaces a bean in the Spring application context for slice or integration tests.", "Intermediate"],
-      ["Why is constructor injection friendlier for testing?", "It lets tests instantiate classes directly with fakes or mocks without reflection or framework involvement.", "Beginner"],
-      ["What is Spring AOP typically used for?", "Spring AOP is used for cross-cutting concerns like transactions, logging, metrics, retries, and security checks.", "Intermediate"],
-      ["What is the role of DispatcherServlet?", "DispatcherServlet is the front controller in Spring MVC that routes requests to handlers, applies interceptors, and coordinates response rendering.", "Intermediate"],
-      ["What are starter dependencies in Spring Boot?", "Starters are curated dependency bundles that pull in a consistent set of libraries for a feature area such as web, data-jpa, or security.", "Beginner"]
-    ]
-  },
-  {
-    topic: "SQL & Persistence",
-    items: [
-      ["What is normalization?", "Normalization organizes relational data to reduce redundancy and anomalies, commonly by splitting data into related tables with defined keys.", "Beginner"],
-      ["What is denormalization and when might it help?", "Denormalization intentionally introduces redundancy to simplify reads or improve performance for specific access patterns.", "Intermediate"],
-      ["What is the difference between INNER JOIN and LEFT JOIN?", "INNER JOIN returns matching rows from both sides, while LEFT JOIN keeps all rows from the left side and fills unmatched right-side columns with null.", "Beginner"],
-      ["What is an index and why does it help?", "An index is a data structure that speeds up lookups and ordering on selected columns, trading storage and write overhead for faster reads.", "Beginner"],
-      ["What is the difference between clustered and non-clustered indexes at a high level?", "A clustered index influences the physical or primary ordering of table data, while a non-clustered index stores a separate lookup structure.", "Intermediate"],
-      ["What causes a full table scan?", "A full table scan happens when the optimizer decides reading all rows is cheaper than using an index or when a useful index does not exist.", "Intermediate"],
-      ["What is a transaction?", "A transaction is a unit of work whose changes are committed together or rolled back together to preserve data integrity.", "Beginner"],
-      ["What does ACID stand for?", "Atomicity, Consistency, Isolation, and Durability.", "Beginner"],
-      ["What is transaction isolation level?", "Isolation level controls how transaction interactions appear to each other, balancing consistency guarantees against concurrency.", "Intermediate"],
-      ["What are dirty reads, non-repeatable reads, and phantom reads?", "They are anomalies where one transaction sees uncommitted data, sees different values on reread, or sees rows appear or disappear across repeated queries.", "Intermediate"],
-      ["What is optimistic locking?", "Optimistic locking assumes conflicts are rare and detects them at update time, often using a version column.", "Intermediate"],
-      ["What is pessimistic locking?", "Pessimistic locking acquires locks earlier to prevent conflicting changes, usually at the cost of reduced concurrency.", "Intermediate"],
-      ["Why are prepared statements important?", "Prepared statements reduce SQL injection risk and can improve performance by separating query structure from parameter values.", "Beginner"],
-      ["What is the difference between DELETE, TRUNCATE, and DROP?", "DELETE removes rows and can be filtered, TRUNCATE removes all rows quickly while keeping the table, and DROP removes the table definition itself.", "Beginner"],
-      ["What is a composite key?", "A composite key is a key made of multiple columns whose combination uniquely identifies a row.", "Intermediate"],
-      ["What is the difference between one-to-many and many-to-many mapping?", "One-to-many means each parent can have many children but each child has one parent, while many-to-many means both sides can reference many of the other and usually need a join table.", "Beginner"],
-      ["What is lazy versus eager fetching in ORM terms?", "Lazy fetching defers related data until it is accessed, while eager fetching loads it immediately with the parent.", "Intermediate"],
-      ["Why can ORM-generated SQL still need review?", "The ORM abstracts mapping, not database performance, so query shape, indexes, fetch strategy, and batching still need deliberate design.", "Intermediate"],
-      ["What is a connection pool?", "A connection pool reuses open database connections so the app does not pay full setup cost on every request.", "Beginner"],
-      ["What is an execution plan?", "An execution plan shows how the database intends to run a query, including index usage, join strategy, and estimated row counts.", "Intermediate"],
-      ["What is a covering index?", "A covering index contains all columns needed for a query so the database can answer it without reading the base table rows.", "Advanced"],
-      ["What is pagination and what can go wrong with offset pagination?", "Pagination splits large result sets into pages, but large offsets can become slow and unstable if data changes between requests.", "Intermediate"],
-      ["When is keyset pagination better?", "Keyset pagination is better for large, ordered result sets where you want stable next-page performance based on the last seen key.", "Advanced"],
-      ["What is a foreign key?", "A foreign key enforces that values in one table reference valid rows in another table, helping maintain referential integrity.", "Beginner"],
-      ["Why is idempotency important for write endpoints backed by SQL?", "It prevents accidental duplicate effects when clients retry requests due to timeouts or transient failures.", "Intermediate"],
-      ["What is a database migration?", "A migration is a versioned schema change script that lets teams evolve the database safely and repeatably across environments.", "Beginner"],
-      ["What is the difference between JDBC and JPA?", "JDBC is the low-level API for executing SQL directly, while JPA is a higher-level object-relational abstraction built on top of persistence providers.", "Beginner"],
-      ["What are batching and bulk updates?", "Batching sends multiple similar statements efficiently, while bulk updates modify many rows in a single statement and may bypass entity lifecycle expectations.", "Advanced"],
-      ["What is eventual consistency and when might it appear around persistence?", "Eventual consistency means reads may temporarily lag writes in distributed systems or asynchronous pipelines before converging.", "Advanced"],
-      ["What is a read replica and what tradeoff does it introduce?", "A read replica offloads read traffic from the primary database, but replication lag can make data briefly stale.", "Advanced"]
-    ]
-  },
-  {
-    topic: "Testing",
-    items: [
-      ["What is the difference between unit, integration, and end-to-end tests?", "Unit tests focus on isolated logic, integration tests validate collaboration with real components like databases or HTTP layers, and end-to-end tests exercise the full system from the outside.", "Beginner"],
-      ["Why are deterministic tests important?", "Deterministic tests produce the same result every run, which builds trust and makes failures actionable instead of flaky.", "Beginner"],
-      ["What makes a good unit test?", "A good unit test is focused, readable, fast, deterministic, and asserts meaningful behavior rather than implementation noise.", "Beginner"],
-      ["What is mocking?", "Mocking replaces real collaborators with test doubles so you can control dependencies and verify interactions in isolated tests.", "Beginner"],
-      ["When can too much mocking become a problem?", "Over-mocking can couple tests to implementation details, hide integration problems, and make refactoring painful.", "Intermediate"],
-      ["What is the Arrange-Act-Assert pattern?", "It structures tests into setup, execution, and verification stages so intent stays clear.", "Beginner"],
-      ["What is TDD?", "Test-driven development is a cycle of writing a failing test, making it pass with the simplest code, and then refactoring safely.", "Beginner"],
-      ["What is a slice test in Spring Boot?", "A slice test loads only a focused part of the application, such as MVC or JPA, to keep tests faster while still using framework wiring.", "Intermediate"],
-      ["What is @SpringBootTest used for?", "SpringBootTest loads the full application context and is useful for high-confidence integration testing, though it is slower than narrower test styles.", "Intermediate"],
-      ["Why are in-memory databases not always enough?", "They can differ from production databases in SQL dialect, transaction behavior, indexing, and query plans, so some issues only appear against the real engine.", "Intermediate"],
-      ["What is contract testing?", "Contract testing verifies that two services agree on request and response expectations without requiring full end-to-end environments.", "Advanced"],
-      ["What is mutation testing?", "Mutation testing intentionally changes code to see whether tests catch the changes, exposing weak assertions and coverage gaps.", "Advanced"],
-      ["Why is code coverage alone not a quality metric?", "Coverage shows which lines executed, not whether tests assert the right behavior or cover meaningful edge cases.", "Intermediate"],
-      ["How do you test asynchronous code?", "Use controlled executors, timeouts, latches, futures, or polling utilities so the test can observe completion reliably without flaky sleeps.", "Intermediate"],
-      ["What is a test pyramid?", "The test pyramid suggests many fast unit tests, fewer integration tests, and a small number of expensive end-to-end tests.", "Beginner"],
-      ["What is the difference between stubs, mocks, fakes, and spies?", "Stubs return canned responses, mocks verify interactions, fakes provide lightweight working implementations, and spies wrap real objects while recording calls.", "Intermediate"],
-      ["Why should tests avoid sharing state?", "Shared state can make tests order-dependent and flaky because one test's setup or cleanup affects another's assumptions.", "Beginner"],
-      ["What are parameterized tests useful for?", "They let one test body run against many inputs and expected outcomes, which reduces duplication and improves coverage of edge cases.", "Beginner"],
-      ["What is a golden master test?", "A golden master test captures current behavior output so refactors can be validated against a stable baseline, especially in legacy code.", "Advanced"],
-      ["How do you test REST controllers in Spring?", "For controller-focused tests you can use MockMvc or WebTestClient, asserting request handling, validation, status codes, and serialized responses.", "Intermediate"],
-      ["What should integration tests verify around persistence?", "They should verify mapping correctness, query behavior, transaction boundaries, and database-specific constraints or performance-sensitive access patterns.", "Intermediate"],
-      ["What is flakiness and how do you reduce it?", "Flakiness is intermittent failure unrelated to code changes; reduce it by controlling time, randomness, concurrency, external dependencies, and shared state.", "Intermediate"],
-      ["Why can testing against production-like data matter?", "Realistic volumes and shapes reveal issues in encoding, edge cases, indexing, memory usage, and unexpected schema assumptions.", "Advanced"],
-      ["What is property-based testing?", "Property-based testing generates many inputs to validate general invariants instead of a few hand-picked examples.", "Advanced"],
-      ["What is the role of assertions in tests?", "Assertions define the expected behavior and are the actual proof that the system did what the test intended.", "Beginner"],
-      ["Why is it helpful to test behavior instead of private methods?", "Behavior-focused tests remain stable through refactoring and validate what callers care about rather than internal mechanics.", "Intermediate"],
-      ["What is a smoke test?", "A smoke test is a small high-level test that checks whether the system basically starts and its critical path works.", "Beginner"],
-      ["How do testcontainers help Java teams?", "Testcontainers spins up real dependencies like databases or brokers in containers so integration tests better match production behavior.", "Intermediate"],
-      ["What is a regression test?", "A regression test reproduces a previously found bug so it stays fixed in future changes.", "Beginner"],
-      ["What should you do when a test fails intermittently in CI only?", "Investigate timing, environment assumptions, shared resources, and logging first, then reproduce with isolation rather than blindly increasing retries.", "Advanced"]
-    ]
-  },
-  {
-    topic: "API & System Design",
-    items: [
-      ["What makes a good REST API?", "A good REST API uses clear resource modeling, predictable status codes, consistent naming, good documentation, and safe handling of validation and errors.", "Beginner"],
-      ["What is idempotency in HTTP?", "An idempotent operation can be repeated without changing the final result beyond the first successful application.", "Beginner"],
-      ["Why are GET requests expected to be side-effect free?", "Clients, caches, and intermediaries assume GET is safe to repeat, so changing state in a GET handler creates surprising and risky behavior.", "Beginner"],
-      ["What is the difference between authentication and authorization?", "Authentication verifies who the caller is, while authorization determines what that caller is allowed to do.", "Beginner"],
-      ["What status codes would you commonly use for create, update, and validation errors?", "201 Created is common for successful creates, 200 or 204 for successful updates depending on response body needs, and 400 or 422 for validation problems.", "Beginner"],
-      ["What is pagination and why should APIs support it?", "Pagination limits response size, improves latency, reduces memory usage, and makes large datasets practical for clients to consume.", "Beginner"],
-      ["What is caching and where can it help in a Java backend?", "Caching stores reusable results closer to the consumer or application layer so repeated expensive work can be avoided.", "Intermediate"],
-      ["What tradeoff does caching introduce?", "Caching improves latency and load but adds invalidation complexity, staleness risk, and extra observability needs.", "Intermediate"],
-      ["What is rate limiting?", "Rate limiting constrains how frequently clients can call an endpoint, protecting system capacity and fairness.", "Intermediate"],
-      ["What is backpressure?", "Backpressure is a mechanism for preventing fast producers from overwhelming slower consumers in asynchronous or streaming systems.", "Advanced"],
-      ["What is circuit breaking?", "Circuit breaking stops repeatedly calling a failing dependency for a period, allowing fast failure and recovery instead of cascading timeouts.", "Intermediate"],
-      ["What is eventual consistency?", "Eventual consistency means different parts of a distributed system may temporarily disagree but converge after propagation completes.", "Advanced"],
-      ["How would you design a notification service?", "Model channels, preferences, delivery attempts, templates, and retry policies explicitly, then decouple ingestion from dispatch with durable queues and observability.", "Advanced"],
-      ["How would you make a job scheduler reliable?", "Persist job state, use distributed locking or lease ownership, make handlers idempotent, support retries with backoff, and capture metrics around lag and failure.", "Advanced"],
-      ["What is horizontal scaling?", "Horizontal scaling increases capacity by adding more instances rather than making a single machine larger.", "Beginner"],
-      ["What is vertical scaling?", "Vertical scaling increases capacity by giving a single machine more CPU, memory, or storage.", "Beginner"],
-      ["What is load balancing?", "Load balancing distributes incoming traffic across instances to improve throughput, resilience, and resource utilization.", "Beginner"],
-      ["What is a message broker used for?", "A message broker buffers and routes messages between producers and consumers so systems can be decoupled and scaled independently.", "Intermediate"],
-      ["What is the difference between synchronous and asynchronous communication?", "Synchronous calls wait for an immediate response, while asynchronous communication lets work continue and results arrive later.", "Beginner"],
-      ["Why does idempotency matter for distributed systems?", "Retries are common when networks fail, so idempotency prevents duplicated side effects when the same request is processed more than once.", "Intermediate"],
-      ["What is observability?", "Observability is the ability to understand system behavior through logs, metrics, traces, and meaningful context.", "Intermediate"],
-      ["What metrics would you watch on a Java API service?", "Latency, throughput, error rate, saturation, GC behavior, heap usage, thread pool pressure, and downstream dependency health are common starting points.", "Intermediate"],
-      ["What is blue-green deployment?", "Blue-green deployment keeps two production environments so traffic can switch from the old version to the new one with fast rollback if needed.", "Intermediate"],
-      ["What is canary deployment?", "Canary deployment rolls out a change to a small subset of traffic first so you can detect issues before full release.", "Intermediate"],
-      ["What is the CAP theorem at a high level?", "In a distributed system facing a network partition, you must trade off between consistency and availability.", "Advanced"],
-      ["What is sharding?", "Sharding splits data across multiple databases or partitions so the system can scale beyond a single node's limits.", "Advanced"],
-      ["What is a saga pattern?", "A saga coordinates a long-running business process as a sequence of local transactions with compensating actions instead of a single global transaction.", "Advanced"],
-      ["How would you handle duplicate event delivery?", "Make consumers idempotent, track processed identifiers where needed, and design messages so repeats do not corrupt state.", "Advanced"],
-      ["What is an API gateway?", "An API gateway provides a single entry point for routing, authentication, rate limiting, and cross-cutting policies across services.", "Intermediate"],
-      ["How would you explain eventual consistency to a product manager?", "I would say the system may briefly show slightly old data after a change, but it will catch up automatically, which often buys us better scale and resilience.", "Beginner"]
-    ]
-  },
-  {
-    topic: "Behavioral & Interview Strategy",
-    items: [
-      ["How would you explain a difficult bug you fixed in an interview?", "Use a clear story: the context, the symptoms, how you narrowed it down, the technical fix, and the measurable impact or lesson learned.", "Beginner"],
-      ["What makes a strong answer to 'tell me about yourself' for a Java developer?", "A strong answer ties your recent experience, core Java/Spring strengths, the kind of systems you have built, and why that background fits the role.", "Beginner"],
-      ["How should you answer a question when you do not know the exact detail?", "State what you do know, make a reasonable inference, explain how you would verify it, and avoid bluffing.", "Beginner"],
-      ["How do you talk about tradeoffs in system design answers?", "Name the goal, the main constraints, the options you considered, and why you chose one while acknowledging what you gave up.", "Intermediate"],
-      ["What is the STAR format and when is it useful?", "STAR stands for Situation, Task, Action, and Result, and it helps keep behavioral answers concise and evidence-based.", "Beginner"],
-      ["How should you discuss a production incident you were involved in?", "Focus on ownership, diagnosis, communication, mitigation, follow-up improvements, and what changed afterward.", "Intermediate"],
-      ["What kind of examples should you prepare before interviews?", "Prepare stories about bugs, scaling work, team conflict, mentoring, technical decisions, missed deadlines, and times you improved quality or delivery.", "Beginner"],
-      ["How do you show seniority without sounding inflated?", "Be specific about scope, decisions, collaboration, and outcomes instead of making vague claims about leadership or expertise.", "Intermediate"],
-      ["How would you explain a legacy modernization project?", "Describe the starting pain, the target architecture, the incremental migration plan, and how you managed risk while delivering value along the way.", "Intermediate"],
-      ["What does a good code review example sound like in an interview?", "Describe how you found a real risk, explained it constructively, aligned on a fix, and improved quality or team understanding.", "Beginner"],
-      ["How should you answer 'why are you looking to move'?", "Keep it positive and forward-looking, focusing on growth, problem space, scope, team fit, or technology direction rather than venting about your current role.", "Beginner"],
-      ["What is a good way to discuss performance improvements you made?", "Quantify the baseline, the bottleneck, your investigation process, the changes you made, and the measurable result.", "Intermediate"],
-      ["How can you demonstrate product thinking as a backend engineer?", "Show that you understand user impact, failure modes, operational tradeoffs, and how technical choices affect delivery speed and customer experience.", "Intermediate"],
-      ["What if an interviewer challenges your design?", "Treat it like collaboration, not conflict: clarify assumptions, explain tradeoffs, and adapt if new constraints change the best answer.", "Intermediate"],
-      ["How should you talk about mistakes?", "Choose a real example, own it clearly, explain the impact honestly, and focus on what changed in your process afterward.", "Beginner"],
-      ["Why is clarity important in technical interviews?", "Clear communication lets interviewers assess how you reason, collaborate, and de-risk work, not just whether you know jargon.", "Beginner"],
-      ["How do you balance speed and quality when answering delivery questions?", "Explain how you reduce scope intentionally, automate checks, sequence risk early, and keep quality gates proportional to impact.", "Intermediate"],
-      ["What is a good answer structure for architecture questions?", "State assumptions, define requirements, propose a baseline design, then walk through scaling, failure handling, data, and tradeoffs.", "Intermediate"],
-      ["How should you discuss mentorship?", "Describe how you helped someone grow through context, feedback, pairing, or systems improvements rather than claiming vague mentorship.", "Beginner"],
-      ["What questions should you ask the interviewer?", "Ask about system complexity, team ownership, production practices, engineering quality, collaboration model, and how success is measured in the role.", "Beginner"],
-      ["How should you handle coding interview dead ends?", "Narrate your thinking, simplify the problem, test assumptions, and pivot deliberately instead of going silent.", "Intermediate"],
-      ["What is a good way to explain concurrency experience in interviews?", "Anchor it in a concrete production problem, such as throughput, latency, synchronization bugs, or parallel processing, and describe the constraints and outcome.", "Intermediate"],
-      ["How can you show judgment in API design discussions?", "Talk about versioning, backward compatibility, failure behavior, consumer experience, and operational visibility, not just endpoint shapes.", "Intermediate"],
-      ["How should you frame working across teams?", "Focus on shared goals, dependency management, communication loops, and how you reduced surprises or unblockers across teams.", "Beginner"],
-      ["What does a strong answer about testing culture include?", "It should connect design for testability, layered test strategy, CI confidence, and the balance between speed and reliability.", "Intermediate"],
-      ["How do you present a project you are proud of?", "Pick one with clear technical depth and user impact, then explain the problem, your decisions, the tradeoffs, and the measurable result.", "Beginner"],
-      ["What should you do if a live interviewer gives ambiguous requirements?", "Clarify them early and restate assumptions so the conversation stays aligned and your solution can be evaluated fairly.", "Beginner"],
-      ["How can you stand out in a Java interview loop?", "Combine solid fundamentals with calm communication, practical tradeoff reasoning, and examples that prove you can ship and operate real systems.", "Intermediate"],
-      ["Why does tailoring answers to the company matter?", "It shows you understand their problem space and can connect your experience to the systems, scale, and priorities they actually have.", "Beginner"],
-      ["What should you review the night before a Java interview?", "Refresh your strongest projects, core Java and Spring fundamentals, common SQL and concurrency topics, and a short set of behavioral stories you can tell cleanly.", "Beginner"]
+    difficulty: "Intermediate",
+    likelihood: "Common",
+    subjects: [
+      "garbage collection",
+      "heap versus stack",
+      "memory leaks in Java",
+      "JIT compilation",
+      "class loaders"
+    ],
+    stems: [
+      "How would you keep an answer about {concept} clear and non-esoteric in an interview?",
+      "What detail about {concept} is worth mentioning to sound practically strong, not just theoretical?",
+      "Where does {concept} show up in real Java troubleshooting?"
     ]
   }
 ];
 
-const generatedQuestions = topicBlueprints.flatMap(({ topic, items }, topicIndex) =>
-  items.map(([prompt, answer, difficulty], index) => ({
-    id: `${topicIndex + 1}-${index + 1}`,
-    topic,
-    prompt,
-    answer,
-    difficulty
-  }))
+const subjectByConcept = Object.fromEntries(
+  subjectBlueprints.map((subject) => [subject.concept, subject])
 );
-
-const scenarioTemplates = [
-  {
-    topic: "Core Java",
-    difficulty: "Intermediate",
-    stems: [
-      "A teammate wants to use {concept} everywhere. How would you explain when it helps and when it hurts?",
-      "In a code review, how would you justify choosing {concept} for a backend service?",
-      "What pitfalls would you watch for when introducing {concept} into an existing Java codebase?"
-    ],
-    concepts: [
-      "Optional as a return type",
-      "records for DTOs",
-      "sealed classes for domain hierarchies",
-      "interfaces with default methods",
-      "reflection-based utilities"
-    ],
-    answers: {
-      "Optional as a return type": "Optional is helpful when absence is a valid return state, but using it for fields, parameters, or collections usually adds ceremony without improving clarity.",
-      "records for DTOs": "Records are great for immutable data carriers with value semantics, but they are less suitable when you need mutable state, framework constraints, or custom inheritance.",
-      "sealed classes for domain hierarchies": "Sealed classes help when the set of subtypes should be explicit and closed, especially for domain modeling and exhaustive pattern matching, but they add ceremony if the hierarchy needs to stay open.",
-      "interfaces with default methods": "Default methods are useful for evolving APIs without breaking implementers, but relying on them for heavy shared behavior can blur contracts and create inheritance surprises.",
-      "reflection-based utilities": "Reflection can reduce boilerplate for generic tooling, but it weakens encapsulation, can be slower, and often makes refactoring and debugging harder."
-    }
-  },
-  {
-    topic: "Collections",
-    difficulty: "Intermediate",
-    stems: [
-      "You are optimizing a feature that depends on {concept}. What tradeoff would you explain to the team?",
-      "What interview answer would you give if asked why you selected {concept} in production?",
-      "How would you decide whether {concept} is the right collection choice for a new feature?"
-    ],
-    concepts: [
-      "ArrayList",
-      "LinkedHashMap",
-      "ConcurrentHashMap",
-      "TreeSet",
-      "CopyOnWriteArrayList"
-    ],
-    answers: {
-      "ArrayList": "ArrayList is usually the default list because indexed reads are fast and memory overhead is low, but insertions and removals in the middle can be expensive because elements shift.",
-      "LinkedHashMap": "LinkedHashMap is useful when iteration order matters or you want access-order behavior for an LRU cache, but it adds some overhead compared with a plain HashMap.",
-      "ConcurrentHashMap": "ConcurrentHashMap is the right fit for shared mutable maps in multi-threaded code, but you still need to think about compound operations that span multiple calls.",
-      "TreeSet": "TreeSet is helpful when you need sorted data or range navigation, but it has logarithmic operations and requires a consistent ordering strategy.",
-      "CopyOnWriteArrayList": "CopyOnWriteArrayList shines when reads dominate and writes are rare, but frequent writes are costly because each mutation copies the backing array."
-    }
-  },
-  {
-    topic: "Concurrency",
-    difficulty: "Advanced",
-    stems: [
-      "A production service slowed down after introducing {concept}. How would you investigate and explain the likely tradeoffs?",
-      "When would you reject {concept} even though it sounds technically correct?",
-      "How would you compare {concept} with a simpler alternative during an interview?"
-    ],
-    concepts: [
-      "parallel streams",
-      "a fixed thread pool",
-      "volatile state",
-      "a read-write lock",
-      "CompletableFuture chains"
-    ],
-    answers: {
-      "parallel streams": "Parallel streams can help with large CPU-bound, stateless work, but they often backfire for small tasks, blocking operations, or services already using the common pool heavily.",
-      "a fixed thread pool": "A fixed thread pool protects resources and avoids unbounded thread creation, but the right size depends on whether tasks are CPU-bound or mostly waiting on I/O.",
-      "volatile state": "Volatile helps with visibility for simple state flags, but it does not make compound updates atomic, so using it for counters or multi-step invariants is unsafe.",
-      "a read-write lock": "A read-write lock can improve read-heavy contention, but it adds complexity and may not outperform simpler locking if write traffic or critical sections are substantial.",
-      "CompletableFuture chains": "CompletableFuture can make async composition elegant, but long chains become hard to debug if execution pools, exception handling, and blocking boundaries are not explicit."
-    }
-  },
-  {
-    topic: "Spring",
-    difficulty: "Intermediate",
-    stems: [
-      "A backend team is debating whether to rely on {concept}. How would you frame the decision?",
-      "What would you say in an interview if asked when {concept} becomes risky?",
-      "How would you explain the operational impact of {concept} in a Spring application?"
-    ],
-    concepts: [
-      "@Transactional on service methods",
-      "Spring Data derived queries",
-      "@SpringBootTest",
-      "profiles for environment config",
-      "WebFlux"
-    ],
-    answers: {
-      "@Transactional on service methods": "Transactional boundaries belong where business work should commit or roll back together, but you need to watch proxy limitations, long-running transactions, and accidental lazy loading.",
-      "Spring Data derived queries": "Derived queries are productive for common cases, but once the query shape gets subtle or performance-sensitive explicit JPQL or SQL is often clearer.",
-      "@SpringBootTest": "SpringBootTest gives high confidence for full-context behavior, but using it everywhere slows feedback loops and makes failures harder to localize.",
-      "profiles for environment config": "Profiles help keep environment-specific behavior explicit, but too many profile combinations can become hard to reason about and test.",
-      "WebFlux": "WebFlux is valuable for non-blocking pipelines and high-concurrency I/O workloads, but it adds cognitive overhead and is a poor fit if the stack remains mostly blocking."
-    }
-  },
-  {
-    topic: "SQL & Persistence",
-    difficulty: "Advanced",
-    stems: [
-      "You are diagnosing a slowdown related to {concept}. What would you look at first?",
-      "How would you explain the tradeoffs behind {concept} to an interviewer?",
-      "What mistake do teams commonly make when using {concept}?"
-    ],
-    concepts: [
-      "an index-heavy table",
-      "offset pagination",
-      "optimistic locking",
-      "a read replica",
-      "bulk updates through JPA"
-    ],
-    answers: {
-      "an index-heavy table": "Too many indexes can speed reads but slow writes and consume storage, so I would check write latency, index selectivity, and whether each index still serves a real query pattern.",
-      "offset pagination": "Offset pagination is easy to implement but gets slower on deep pages and can produce unstable results if rows are inserted or removed between requests.",
-      "optimistic locking": "Optimistic locking works well when conflicts are uncommon, but high-contention workflows can see many retries and a worse user experience.",
-      "a read replica": "A read replica helps offload traffic, but replication lag means some reads may be stale, so you must decide which endpoints can tolerate that.",
-      "bulk updates through JPA": "Bulk updates can be efficient, but they may bypass the persistence context and entity callbacks, so stale in-memory state and unexpected side effects are common traps."
-    }
-  },
-  {
-    topic: "Testing",
-    difficulty: "Intermediate",
-    stems: [
-      "A test suite is struggling because of {concept}. How would you improve the situation?",
-      "How would you explain the limits of {concept} in an interview?",
-      "What practical rule would you use before reaching for {concept}?"
-    ],
-    concepts: [
-      "heavy mocking",
-      "@SpringBootTest everywhere",
-      "coverage targets",
-      "sleep-based async tests",
-      "shared test fixtures"
-    ],
-    answers: {
-      "heavy mocking": "Heavy mocking can keep tests fast but often couples them to implementation details, so I would prefer simpler collaborators, more slice tests, or clearer seams where it matters.",
-      "@SpringBootTest everywhere": "Using the full Spring context for every test raises confidence but slows the suite and hides ownership, so I would keep it for real integration boundaries and use narrower tests elsewhere.",
-      "coverage targets": "Coverage targets can be useful as a floor, but they should never replace meaningful assertions, good edge cases, and tests that capture business risk.",
-      "sleep-based async tests": "Sleeping introduces flakiness because timing varies by machine and load, so I would use latches, futures, or polling with timeouts tied to actual completion.",
-      "shared test fixtures": "Shared fixtures reduce setup duplication, but they can create hidden coupling and brittle tests if one case mutates state another case assumes."
-    }
-  }
-];
 
 const scenarioQuestions = scenarioTemplates.flatMap((template, templateIndex) =>
   template.stems.flatMap((stem, stemIndex) =>
-    template.concepts.map((concept, conceptIndex) => ({
-      id: `s-${templateIndex + 1}-${stemIndex + 1}-${conceptIndex + 1}`,
-      topic: template.topic,
-      difficulty: template.difficulty,
-      prompt: stem.replace("{concept}", concept),
-      answer: template.answers[concept]
-    }))
+    template.subjects.map((concept, conceptIndex) => {
+      const subject = subjectByConcept[concept];
+      return {
+        id: `s-${templateIndex + 1}-${stemIndex + 1}-${conceptIndex + 1}`,
+        topic: template.topic,
+        concept,
+        difficulty: template.difficulty,
+        likelihood: template.likelihood,
+        prompt: stem.replace("{concept}", concept),
+        answer: `${subject.importance} ${subject.pitfall} ${subject.useCase}`
+      };
+    })
   )
 );
 
-const questions = [...generatedQuestions, ...scenarioQuestions];
+const questions = [...baseQuestions, ...scenarioQuestions];
 
 const state = {
   currentQuestionId: null,
   filteredQuestions: [...questions],
+  selectedDifficulty: "all",
+  selectedLikelihood: "all",
   progress: loadProgress()
 };
 
@@ -494,12 +258,12 @@ const elements = {
   reviewedCount: document.querySelector("#reviewed-count"),
   masteredCount: document.querySelector("#mastered-count"),
   searchInput: document.querySelector("#search-input"),
-  difficultySelect: document.querySelector("#difficulty-select"),
-  topicSelect: document.querySelector("#topic-select"),
   statusSelect: document.querySelector("#status-select"),
-  topicPills: document.querySelector("#topic-pills"),
+  difficultyPills: document.querySelector("#difficulty-pills"),
+  likelihoodPills: document.querySelector("#likelihood-pills"),
   questionTopic: document.querySelector("#question-topic"),
   questionDifficulty: document.querySelector("#question-difficulty"),
+  questionLikelihood: document.querySelector("#question-likelihood"),
   questionPrompt: document.querySelector("#question-prompt"),
   answerBox: document.querySelector("#question-answer"),
   answerText: document.querySelector("#question-answer-text"),
@@ -541,44 +305,68 @@ function updateQuestionStatus(questionId, status) {
   renderQuestionList();
 }
 
-function getTopics() {
-  return [...new Set(questions.map((question) => question.topic))].sort();
+function renderFilterPills(container, options, selected, variantClass, onSelect) {
+  container.innerHTML = "";
+  options.forEach((option) => {
+    const pill = document.createElement("button");
+    pill.type = "button";
+    pill.className = `pill ${variantClass} ${selected === option ? "pill--active" : ""}`.trim();
+    pill.textContent = option === "all" ? "All" : option;
+    pill.addEventListener("click", () => onSelect(option));
+    container.append(pill);
+  });
 }
 
-function populateTopics() {
-  getTopics().forEach((topic) => {
-    const option = document.createElement("option");
-    option.value = topic;
-    option.textContent = topic;
-    elements.topicSelect.append(option);
-
-    const pill = document.createElement("button");
-    pill.className = "pill";
-    pill.type = "button";
-    pill.textContent = topic;
-    pill.addEventListener("click", () => {
-      elements.topicSelect.value = topic;
+function renderDifficultyPills() {
+  renderFilterPills(
+    elements.difficultyPills,
+    ["all", "Beginner", "Intermediate", "Advanced"],
+    state.selectedDifficulty,
+    "pill--difficulty",
+    (option) => {
+      state.selectedDifficulty = option;
+      renderDifficultyPills();
       applyFilters();
-    });
-    elements.topicPills.append(pill);
-  });
+    }
+  );
+}
+
+function renderLikelihoodPills() {
+  renderFilterPills(
+    elements.likelihoodPills,
+    ["all", "Very Common", "Common", "Occasional", "Rare"],
+    state.selectedLikelihood,
+    "pill--likelihood",
+    (option) => {
+      state.selectedLikelihood = option;
+      renderLikelihoodPills();
+      applyFilters();
+    }
+  );
 }
 
 function applyFilters() {
   const searchValue = elements.searchInput.value.trim().toLowerCase();
-  const difficulty = elements.difficultySelect.value;
-  const topic = elements.topicSelect.value;
+  const difficulty = state.selectedDifficulty;
+  const likelihood = state.selectedLikelihood;
   const status = elements.statusSelect.value;
 
   state.filteredQuestions = questions.filter((question) => {
     const matchesSearch =
       !searchValue ||
-      [question.prompt, question.answer, question.topic, question.difficulty]
+      [
+        question.prompt,
+        question.answer,
+        question.topic,
+        question.concept,
+        question.difficulty,
+        question.likelihood
+      ]
         .join(" ")
         .toLowerCase()
         .includes(searchValue);
     const matchesDifficulty = difficulty === "all" || question.difficulty === difficulty;
-    const matchesTopic = topic === "all" || question.topic === topic;
+    const matchesLikelihood = likelihood === "all" || question.likelihood === likelihood;
     const questionStatus = getQuestionStatus(question.id);
     const matchesStatus =
       status === "all" ||
@@ -586,33 +374,35 @@ function applyFilters() {
       (status === "mastered" && questionStatus === "mastered") ||
       (status === "unseen" && questionStatus === "unseen");
 
-    return matchesSearch && matchesDifficulty && matchesTopic && matchesStatus;
+    return matchesSearch && matchesDifficulty && matchesLikelihood && matchesStatus;
   });
 
   renderDeckSummary();
   renderQuestionList();
 
-  const currentStillVisible = state.filteredQuestions.some(
-    (question) => question.id === state.currentQuestionId
-  );
-
-  if (!currentStillVisible) {
+  if (!state.filteredQuestions.some((question) => question.id === state.currentQuestionId)) {
     pickNextQuestion();
   }
 }
 
 function renderDeckSummary() {
   const total = state.filteredQuestions.length;
-  const byDifficulty = ["Beginner", "Intermediate", "Advanced"]
-    .map((difficulty) => {
-      const count = state.filteredQuestions.filter((question) => question.difficulty === difficulty).length;
-      return `${difficulty}: ${count}`;
-    })
+  const difficultySummary = ["Beginner", "Intermediate", "Advanced"]
+    .map(
+      (difficulty) =>
+        `${difficulty}: ${state.filteredQuestions.filter((q) => q.difficulty === difficulty).length}`
+    )
+    .join(" · ");
+  const likelihoodSummary = ["Very Common", "Common", "Occasional", "Rare"]
+    .map(
+      (likelihood) =>
+        `${likelihood}: ${state.filteredQuestions.filter((q) => q.likelihood === likelihood).length}`
+    )
     .join(" · ");
 
   elements.deckSummary.textContent =
     total > 0
-      ? `${total} questions in the current deck. ${byDifficulty}.`
+      ? `${total} questions in the current deck. ${difficultySummary}. ${likelihoodSummary}.`
       : "No questions match the current filters yet.";
 }
 
@@ -623,12 +413,9 @@ function pickNextQuestion() {
     return;
   }
 
-  const unseenFirst = state.filteredQuestions.filter(
-    (question) => getQuestionStatus(question.id) === "unseen"
-  );
+  const unseenFirst = state.filteredQuestions.filter((question) => getQuestionStatus(question.id) === "unseen");
   const source = unseenFirst.length > 0 ? unseenFirst : state.filteredQuestions;
-  const randomIndex = Math.floor(Math.random() * source.length);
-  state.currentQuestionId = source[randomIndex].id;
+  state.currentQuestionId = source[Math.floor(Math.random() * source.length)].id;
   renderCurrentQuestion();
 }
 
@@ -638,6 +425,7 @@ function renderCurrentQuestion() {
   if (!question) {
     elements.questionTopic.textContent = "No match";
     elements.questionDifficulty.textContent = "Update filters";
+    elements.questionLikelihood.textContent = "No question";
     elements.questionPrompt.textContent = "No question is available for the current selection.";
     elements.answerText.textContent = "";
     elements.answerBox.classList.add("answer--hidden");
@@ -646,6 +434,7 @@ function renderCurrentQuestion() {
 
   elements.questionTopic.textContent = question.topic;
   elements.questionDifficulty.textContent = question.difficulty;
+  elements.questionLikelihood.textContent = question.likelihood;
   elements.questionPrompt.textContent = question.prompt;
   elements.answerText.textContent = question.answer;
   elements.answerBox.classList.add("answer--hidden");
@@ -675,14 +464,18 @@ function renderQuestionList() {
     difficulty.className = "pill pill--difficulty";
     difficulty.textContent = question.difficulty;
 
-    meta.append(topic, difficulty);
+    const likelihood = document.createElement("span");
+    likelihood.className = "pill pill--likelihood";
+    likelihood.textContent = question.likelihood;
+
+    meta.append(topic, difficulty, likelihood);
 
     const title = document.createElement("h3");
     title.textContent = question.prompt;
 
     const status = document.createElement("div");
     status.className = "question-list__status";
-    status.textContent = `Status: ${getQuestionStatus(question.id)}`;
+    status.textContent = `Status: ${getQuestionStatus(question.id)} · Concept: ${question.concept}`;
 
     button.append(meta, title, status);
     elements.questionList.append(button);
@@ -706,18 +499,15 @@ function updateProgressUI() {
 }
 
 function bindEvents() {
-  [elements.searchInput, elements.difficultySelect, elements.topicSelect, elements.statusSelect].forEach(
-    (element) => {
-      element.addEventListener("input", applyFilters);
-      element.addEventListener("change", applyFilters);
-    }
-  );
+  [elements.searchInput, elements.statusSelect].forEach((element) => {
+    element.addEventListener("input", applyFilters);
+    element.addEventListener("change", applyFilters);
+  });
 
   elements.revealButton.addEventListener("click", () => {
-    if (!state.currentQuestionId) {
-      return;
+    if (state.currentQuestionId) {
+      elements.answerBox.classList.remove("answer--hidden");
     }
-    elements.answerBox.classList.remove("answer--hidden");
   });
 
   elements.nextButton.addEventListener("click", pickNextQuestion);
@@ -745,7 +535,8 @@ function bindEvents() {
 }
 
 function init() {
-  populateTopics();
+  renderDifficultyPills();
+  renderLikelihoodPills();
   bindEvents();
   updateProgressUI();
   applyFilters();

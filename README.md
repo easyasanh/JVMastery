@@ -1,22 +1,21 @@
-# Java Interview Drill
+# JVMastery
 
-Java Interview Drill is a static interview practice app inspired by question-bank study products, but focused on Java developer job interviews. It is designed to deploy cleanly to GitHub Pages with no build step and includes hundreds of questions across:
+JVMastery is a static core Java interview practice app designed to deploy cleanly to GitHub Pages with no build step. It includes hundreds of questions focused on:
 
-- Core Java
-- Collections
-- Concurrency
-- JVM and memory
-- Spring and Spring Boot
-- SQL and persistence
-- Testing
-- API and system design
-- Behavioral interview prep
+- language fundamentals
+- object-oriented programming
+- exceptions
+- strings and immutability
+- interfaces, inheritance, and polymorphism
+- records, enums, sealed classes, and modern Java features
+- JVM essentials and memory behavior
 
 ## Features
 
-- 300+ Java interview questions
+- 300+ core Java interview questions
 - Difficulty labels: `Beginner`, `Intermediate`, `Advanced`
-- Search, topic, difficulty, and progress filters
+- Likelihood labels: `Very Common`, `Common`, `Occasional`, `Rare`
+- Search, difficulty, likelihood, and progress filters
 - Answer reveal flow for self-testing
 - Local progress tracking with `localStorage`
 - GitHub Pages workflow included
@@ -41,4 +40,4 @@ Then visit `http://localhost:8080`.
 
 ## Content model
 
-Questions are defined in [`app.js`](/Users/Andrew/Documents/New%20project/app.js). The base bank contains curated prompt-and-answer cards, and the app also expands structured scenario templates so the final library reaches the "hundreds of questions" range while keeping the material varied and interview-focused.
+Questions are defined in [`app.js`](/Users/Andrew/Documents/New%20project/app.js). The bank is generated from a large set of core Java theory subjects, each expanded into multiple interview-style prompts and annotated with both difficulty and likelihood so common questions stay easy to prioritize.

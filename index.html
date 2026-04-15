@@ -3,10 +3,10 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Java Interview Drill</title>
+    <title>JVMastery</title>
     <meta
       name="description"
-      content="A GitHub Pages-ready Java developer interview practice app with hundreds of graded questions."
+      content="A GitHub Pages-ready core Java interview practice app with hundreds of graded questions."
     />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -20,11 +20,12 @@
     <div class="page-shell">
       <header class="hero">
         <div class="hero__copy">
-          <p class="eyebrow">Java Developer Interview Prep</p>
-          <h1>Practice like Quesmed, tuned for Java hiring loops.</h1>
+          <p class="eyebrow">Core Java Interview Prep</p>
+          <h1>Sharpen your core Java fundamentals for interview loops.</h1>
           <p class="hero__text">
-            Work through hundreds of interview prompts across core Java, Spring,
-            SQL, testing, concurrency, JVM internals, and system design.
+            Work through hundreds of core Java interview prompts covering language
+            fundamentals, object-oriented design, exceptions, collections
+            concepts, and JVM essentials.
           </p>
           <div class="hero__actions">
             <button id="random-question-button" class="button button--primary">
@@ -55,30 +56,23 @@
         <aside class="filters panel">
           <div class="panel__header">
             <h2>Practice Filters</h2>
-            <p>Focus your next card deck by topic or difficulty.</p>
+            <p>Focus your next card deck by difficulty or progress state.</p>
           </div>
 
           <label class="field">
             <span>Search</span>
-            <input id="search-input" type="search" placeholder="Collections, Spring, GC..." />
+            <input id="search-input" type="search" placeholder="Strings, equals, inheritance..." />
           </label>
 
-          <label class="field">
-            <span>Difficulty</span>
-            <select id="difficulty-select">
-              <option value="all">All levels</option>
-              <option value="Beginner">Beginner</option>
-              <option value="Intermediate">Intermediate</option>
-              <option value="Advanced">Advanced</option>
-            </select>
-          </label>
+          <section class="panel__section">
+            <h3>Difficulty</h3>
+            <div id="difficulty-pills" class="pill-grid"></div>
+          </section>
 
-          <label class="field">
-            <span>Topic</span>
-            <select id="topic-select">
-              <option value="all">All topics</option>
-            </select>
-          </label>
+          <section class="panel__section">
+            <h3>Likelihood</h3>
+            <div id="likelihood-pills" class="pill-grid"></div>
+          </section>
 
           <label class="field">
             <span>Status</span>
@@ -94,10 +88,6 @@
             Shuffle Filtered Deck
           </button>
 
-          <section class="panel__section">
-            <h3>Topics</h3>
-            <div id="topic-pills" class="pill-grid"></div>
-          </section>
         </aside>
 
         <section class="practice">
@@ -105,6 +95,7 @@
             <div class="question-card__meta">
               <span id="question-topic" class="pill">Topic</span>
               <span id="question-difficulty" class="pill pill--difficulty">Difficulty</span>
+              <span id="question-likelihood" class="pill pill--likelihood">Likelihood</span>
             </div>
 
             <div class="question-card__body">

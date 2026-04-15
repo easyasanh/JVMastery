@@ -143,6 +143,10 @@ select {
   height: fit-content;
 }
 
+.filters .panel__section {
+  margin: 18px 0;
+}
+
 .field {
   display: grid;
   gap: 8px;
@@ -221,11 +225,36 @@ select {
   background: rgba(13, 107, 95, 0.09);
   color: var(--primary-strong);
   font-size: 0.9rem;
+  border: 0;
 }
 
 .pill--difficulty {
   background: rgba(215, 143, 50, 0.16);
   color: #845616;
+}
+
+.pill--likelihood {
+  background: rgba(60, 90, 170, 0.12);
+  color: #27437d;
+}
+
+button.pill {
+  cursor: pointer;
+}
+
+.pill--active {
+  background: var(--primary);
+  color: #fff;
+}
+
+.pill--difficulty.pill--active {
+  background: var(--accent);
+  color: #fff7eb;
+}
+
+.pill--likelihood.pill--active {
+  background: #365bb7;
+  color: #f7f9ff;
 }
 
 .question-label {
@@ -358,5 +387,14 @@ select {
 
   .hero h1 {
     font-size: 2.4rem;
+  }
+
+  .pill-grid {
+    gap: 8px;
+  }
+
+  .pill {
+    padding: 7px 12px;
+    font-size: 0.84rem;
   }
 }
