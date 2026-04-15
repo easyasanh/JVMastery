@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Java Interview Drill</title>
+    <meta
+      name="description"
+      content="A GitHub Pages-ready Java developer interview practice app with hundreds of graded questions."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Source+Serif+4:wght@400;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="page-shell">
+      <header class="hero">
+        <div class="hero__copy">
+          <p class="eyebrow">Java Developer Interview Prep</p>
+          <h1>Practice like Quesmed, tuned for Java hiring loops.</h1>
+          <p class="hero__text">
+            Work through hundreds of interview prompts across core Java, Spring,
+            SQL, testing, concurrency, JVM internals, and system design.
+          </p>
+          <div class="hero__actions">
+            <button id="random-question-button" class="button button--primary">
+              Start Random Practice
+            </button>
+            <button id="reset-progress-button" class="button button--ghost">
+              Reset Progress
+            </button>
+          </div>
+        </div>
+        <div class="hero__stats">
+          <div class="stat-card">
+            <span class="stat-card__label">Question Bank</span>
+            <strong id="question-count">0</strong>
+          </div>
+          <div class="stat-card">
+            <span class="stat-card__label">Reviewed</span>
+            <strong id="reviewed-count">0</strong>
+          </div>
+          <div class="stat-card">
+            <span class="stat-card__label">Mastered</span>
+            <strong id="mastered-count">0</strong>
+          </div>
+        </div>
+      </header>
+
+      <main class="dashboard">
+        <aside class="filters panel">
+          <div class="panel__header">
+            <h2>Practice Filters</h2>
+            <p>Focus your next card deck by topic or difficulty.</p>
+          </div>
+
+          <label class="field">
+            <span>Search</span>
+            <input id="search-input" type="search" placeholder="Collections, Spring, GC..." />
+          </label>
+
+          <label class="field">
+            <span>Difficulty</span>
+            <select id="difficulty-select">
+              <option value="all">All levels</option>
+              <option value="Beginner">Beginner</option>
+              <option value="Intermediate">Intermediate</option>
+              <option value="Advanced">Advanced</option>
+            </select>
+          </label>
+
+          <label class="field">
+            <span>Topic</span>
+            <select id="topic-select">
+              <option value="all">All topics</option>
+            </select>
+          </label>
+
+          <label class="field">
+            <span>Status</span>
+            <select id="status-select">
+              <option value="all">Any status</option>
+              <option value="unseen">Unseen</option>
+              <option value="reviewed">Reviewed</option>
+              <option value="mastered">Mastered</option>
+            </select>
+          </label>
+
+          <button id="shuffle-filtered-button" class="button button--primary button--full">
+            Shuffle Filtered Deck
+          </button>
+
+          <section class="panel__section">
+            <h3>Topics</h3>
+            <div id="topic-pills" class="pill-grid"></div>
+          </section>
+        </aside>
+
+        <section class="practice">
+          <article class="question-card panel">
+            <div class="question-card__meta">
+              <span id="question-topic" class="pill">Topic</span>
+              <span id="question-difficulty" class="pill pill--difficulty">Difficulty</span>
+            </div>
+
+            <div class="question-card__body">
+              <p class="question-label">Question</p>
+              <h2 id="question-prompt">Choose a filter and start practicing.</h2>
+              <div id="question-answer" class="answer answer--hidden" aria-live="polite">
+                <p class="question-label">Suggested Answer</p>
+                <p id="question-answer-text"></p>
+              </div>
+            </div>
+
+            <div class="question-card__actions">
+              <button id="reveal-button" class="button button--primary">Reveal Answer</button>
+              <button id="next-button" class="button button--ghost">Next Question</button>
+            </div>
+          </article>
+
+          <section class="question-tools panel">
+            <div class="panel__header">
+              <h2>Session Controls</h2>
+              <p>Track what you have seen and what you want to revisit.</p>
+            </div>
+
+            <div class="session-actions">
+              <button id="mark-reviewed-button" class="button button--ghost">Mark Reviewed</button>
+              <button id="mark-mastered-button" class="button button--primary">Mark Mastered</button>
+            </div>
+
+            <div class="progress-bars">
+              <div>
+                <div class="progress-label">
+                  <span>Reviewed coverage</span>
+                  <span id="reviewed-percent">0%</span>
+                </div>
+                <div class="progress-track"><div id="reviewed-bar" class="progress-fill"></div></div>
+              </div>
+              <div>
+                <div class="progress-label">
+                  <span>Mastery coverage</span>
+                  <span id="mastered-percent">0%</span>
+                </div>
+                <div class="progress-track"><div id="mastered-bar" class="progress-fill progress-fill--accent"></div></div>
+              </div>
+            </div>
+
+            <div id="deck-summary" class="deck-summary"></div>
+          </section>
+        </section>
+      </main>
+
+      <section class="library panel">
+        <div class="panel__header">
+          <h2>Question Library</h2>
+          <p>Browse the current filtered deck before jumping back into practice.</p>
+        </div>
+        <div id="question-list" class="question-list"></div>
+      </section>
+    </div>
+
+    <script src="./app.js"></script>
+  </body>
+</html>
