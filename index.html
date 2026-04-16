@@ -6,7 +6,7 @@
     <title>JVMastery</title>
     <meta
       name="description"
-      content="A GitHub Pages-ready core Java interview practice app with hundreds of graded questions."
+      content="A GitHub Pages-ready core Java theory question bank with hundreds of graded questions."
     />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -20,16 +20,16 @@
     <div class="page-shell">
       <header class="hero">
         <div class="hero__copy">
-          <p class="eyebrow">Core Java Interview Prep</p>
-          <h1>Sharpen your core Java fundamentals for interview loops.</h1>
+          <p class="eyebrow">Core Java Theory Bank</p>
+          <h1>Build a deep, searchable bank of core Java knowledge.</h1>
           <p class="hero__text">
-            Work through hundreds of core Java interview prompts covering language
-            fundamentals, object-oriented design, exceptions, collections
-            concepts, and JVM essentials.
+            Study hundreds of core Java theory questions that often come up in
+            interviews, from language basics and OOP to collections,
+            concurrency, and JVM essentials.
           </p>
           <div class="hero__actions">
             <button id="random-question-button" class="button button--primary">
-              Start Random Practice
+              Open Random Question
             </button>
             <button id="reset-progress-button" class="button button--ghost">
               Reset Progress
@@ -55,8 +55,8 @@
       <main class="dashboard">
         <aside class="filters panel">
           <div class="panel__header">
-            <h2>Practice Filters</h2>
-            <p>Focus your next card deck by difficulty or progress state.</p>
+            <h2>Question Filters</h2>
+            <p>Focus the bank by difficulty, likelihood, or revision state.</p>
           </div>
 
           <label class="field">
@@ -101,13 +101,18 @@
             <div class="question-card__body">
               <p class="question-label">Question</p>
               <h2 id="question-prompt">Choose a filter and start practicing.</h2>
+              <div id="question-hint" class="answer answer--hint answer--hidden" aria-live="polite">
+                <p class="question-label">Hint</p>
+                <p id="question-hint-text"></p>
+              </div>
               <div id="question-answer" class="answer answer--hidden" aria-live="polite">
-                <p class="question-label">Suggested Answer</p>
+                <p class="question-label">Answer</p>
                 <p id="question-answer-text"></p>
               </div>
             </div>
 
             <div class="question-card__actions">
+              <button id="hint-button" class="button button--ghost">Show Hint</button>
               <button id="reveal-button" class="button button--primary">Reveal Answer</button>
               <button id="next-button" class="button button--ghost">Next Question</button>
             </div>
@@ -116,7 +121,7 @@
           <section class="question-tools panel">
             <div class="panel__header">
               <h2>Session Controls</h2>
-              <p>Track what you have seen and what you want to revisit.</p>
+              <p>Track what you have covered and what still needs revision.</p>
             </div>
 
             <div class="session-actions">
@@ -149,7 +154,7 @@
       <section class="library panel">
         <div class="panel__header">
           <h2>Question Library</h2>
-          <p>Browse the current filtered deck before jumping back into practice.</p>
+          <p>Browse the current filtered deck and open any question directly.</p>
         </div>
         <div id="question-list" class="question-list"></div>
       </section>

@@ -100,22 +100,82 @@ const subjectBlueprints = [
   createSubject("Advanced Features", "serialization and the transient keyword", "Advanced", "Rare", "Serialization converts object state into a transportable or storable form, and transient marks fields that default Java serialization should skip.", "It matters mostly as a legacy or niche topic, but it still appears sometimes because many older Java systems used built-in serialization heavily.", "A common mistake is assuming transient is a general security feature rather than a serialization-specific instruction.", "Mention it when discussing legacy systems, object transport, or why built-in serialization is often avoided in newer designs.")
 ];
 
+function simplifyImportance(text) {
+  return text
+    .replace(/^Interviewers ask this because\s*/i, "")
+    .replace(/^This matters because\s*/i, "")
+    .replace(/^It matters because\s*/i, "")
+    .replace(/^Interviewers use this topic because\s*/i, "")
+    .replace(/^Interviewers use this to\s*/i, "It helps you ")
+    .replace(/^Interviewers like this because\s*/i, "")
+    .replace(/^Interviewers ask this to\s*/i, "It helps you ")
+    .replace(/^Interviewers ask this because it\s*/i, "It ")
+    .replace(/^Interviewers ask this because they\s*/i, "It helps show ")
+    .replace(/^Interviewers ask this because many\s*/i, "This matters because many ")
+    .replace(/^Interviewers ask this because Optional\s*/i, "This matters because Optional ")
+    .replace(/^It is one of the fastest ways for an interviewer to see whether you understand /i, "It shows whether you understand ")
+    .replace(/^This is a classic interview topic because it exposes whether someone can reason clearly about /i, "It matters because it tests clear reasoning about ")
+    .replace(/^This is a staple topic because it reveals whether you can /i, "It matters because it shows whether you can ")
+    .trim();
+}
+
+function simplifyPitfall(text) {
+  return text
+    .replace(/^A common mistake is\s*/i, "Common mistake: ")
+    .replace(/^A common misconception is\s*/i, "Common misconception: ")
+    .replace(/^A common gap is\s*/i, "Common gap: ")
+    .replace(/^A common slip is\s*/i, "Common slip: ")
+    .replace(/^A frequent mistake is\s*/i, "Common mistake: ")
+    .replace(/^Candidates often\s*/i, "Common mistake: ")
+    .replace(/^People sometimes\s*/i, "Common mistake: ")
+    .trim();
+}
+
+function simplifyUseCase(text) {
+  return text
+    .replace(/^Bring it up when\s*/i, "Useful when ")
+    .replace(/^Use it when\s*/i, "Useful when ")
+    .replace(/^Mention it when\s*/i, "Useful when ")
+    .replace(/an interview question involves/gi, "a question involves")
+    .replace(/in an interview answer/gi, "in an explanation")
+    .replace(/when answering/gi, "when explaining")
+    .replace(/when talking about/gi, "when working with")
+    .trim();
+}
+
+function buildHint(subject, kind) {
+  const topicHint = `${subject.topic} · ${subject.concept}`;
+  if (kind === "explain") {
+    return `${topicHint}. Start by naming what it is, then say what job it does in Java.`;
+  }
+  if (kind === "importance") {
+    return `${topicHint}. Think about why this changes correctness, readability, safety, or performance.`;
+  }
+  if (kind === "pitfall") {
+    return `${topicHint}. Focus on the mistake people make when they apply the idea too loosely or misunderstand what Java guarantees.`;
+  }
+  if (kind === "useCase") {
+    return `${topicHint}. Think of a real coding situation where this concept becomes the clean or safe choice.`;
+  }
+  return `${topicHint}. Start with the simple definition, then add one practical detail.`;
+}
+
 const promptFamilies = {
   explain: [
     (concept) => `What is ${concept} in Java?`,
-    (concept) => `How would you explain ${concept} in a Java interview?`
+    (concept) => `Explain ${concept} simply in Java.`
   ],
   importance: [
-    (concept) => `Why does ${concept} matter in Java interviews or production code?`,
+    (concept) => `Why is ${concept} important in Java?`,
     (concept) => `Why should a Java developer understand ${concept}?`
   ],
   pitfall: [
-    (concept) => `What mistake or nuance should you call out when discussing ${concept}?`,
+    (concept) => `What is a common mistake with ${concept} in Java?`,
     (concept) => `What is a common misconception about ${concept}?`
   ],
   useCase: [
-    (concept) => `When would you deliberately bring up ${concept} in an interview answer?`,
-    (concept) => `Where does ${concept} become practically useful in Java code?`
+    (concept) => `When would you use ${concept} in Java?`,
+    (concept) => `Where does ${concept} become useful in Java code?`
   ]
 };
 
@@ -123,20 +183,24 @@ const baseQuestions = subjectBlueprints.flatMap((subject, subjectIndex) => {
   const variants = [
     {
       prompt: promptFamilies.explain[subjectIndex % promptFamilies.explain.length](subject.concept),
-      answer: subject.core
+      answer: subject.core,
+      hint: buildHint(subject, "explain")
     },
     {
       prompt:
         promptFamilies.importance[subjectIndex % promptFamilies.importance.length](subject.concept),
-      answer: subject.importance
+      answer: simplifyImportance(subject.importance),
+      hint: buildHint(subject, "importance")
     },
     {
       prompt: promptFamilies.pitfall[subjectIndex % promptFamilies.pitfall.length](subject.concept),
-      answer: subject.pitfall
+      answer: simplifyPitfall(subject.pitfall),
+      hint: buildHint(subject, "pitfall")
     },
     {
       prompt: promptFamilies.useCase[subjectIndex % promptFamilies.useCase.length](subject.concept),
-      answer: subject.useCase
+      answer: simplifyUseCase(subject.useCase),
+      hint: buildHint(subject, "useCase")
     }
   ];
 
@@ -164,9 +228,9 @@ const scenarioTemplates = [
       "polymorphism"
     ],
     stems: [
-      "A teammate gives a shaky explanation of {concept}. How would you correct it in an interview-style answer?",
-      "If an interviewer pushed back on your answer about {concept}, what nuance would you add?",
-      "How would you turn {concept} from a textbook answer into a practical Java example?"
+      "How would you explain {concept} clearly and simply?",
+      "What extra detail makes an answer about {concept} stronger?",
+      "What practical example helps explain {concept}?"
     ]
   },
   {
@@ -181,9 +245,9 @@ const scenarioTemplates = [
       "fail-fast iterators"
     ],
     stems: [
-      "What deeper follow-up would you expect after mentioning {concept} in a Java interview?",
-      "How would you explain the tradeoff behind {concept} without sounding overly academic?",
-      "What practical bug or design issue can {concept} help you explain?"
+      "What deeper idea sits behind {concept}?",
+      "How would you explain the tradeoff behind {concept} clearly?",
+      "What practical bug or design issue can {concept} help explain?"
     ]
   },
   {
@@ -198,9 +262,9 @@ const scenarioTemplates = [
       "immutability and thread safety"
     ],
     stems: [
-      "How would you explain {concept} to show real concurrency judgment rather than just vocabulary?",
-      "What wrong recommendation do candidates often make when discussing {concept}?",
-      "If asked for a production example of {concept}, what would you say?"
+      "How would you explain {concept} clearly in concurrency terms?",
+      "What wrong recommendation do people often make about {concept}?",
+      "What practical example helps explain {concept}?"
     ]
   },
   {
@@ -215,8 +279,8 @@ const scenarioTemplates = [
       "class loaders"
     ],
     stems: [
-      "How would you keep an answer about {concept} clear and non-esoteric in an interview?",
-      "What detail about {concept} is worth mentioning to sound practically strong, not just theoretical?",
+      "How would you keep an answer about {concept} clear and non-esoteric?",
+      "What detail about {concept} is worth mentioning beyond the simple definition?",
       "Where does {concept} show up in real Java troubleshooting?"
     ]
   }
@@ -237,7 +301,8 @@ const scenarioQuestions = scenarioTemplates.flatMap((template, templateIndex) =>
         difficulty: template.difficulty,
         likelihood: template.likelihood,
         prompt: stem.replace("{concept}", concept),
-        answer: `${subject.importance} ${subject.pitfall} ${subject.useCase}`
+        answer: `${simplifyImportance(subject.importance)} ${simplifyPitfall(subject.pitfall)} ${simplifyUseCase(subject.useCase)}`,
+        hint: buildHint(subject, "scenario")
       };
     })
   )
@@ -265,8 +330,11 @@ const elements = {
   questionDifficulty: document.querySelector("#question-difficulty"),
   questionLikelihood: document.querySelector("#question-likelihood"),
   questionPrompt: document.querySelector("#question-prompt"),
+  hintBox: document.querySelector("#question-hint"),
+  hintText: document.querySelector("#question-hint-text"),
   answerBox: document.querySelector("#question-answer"),
   answerText: document.querySelector("#question-answer-text"),
+  hintButton: document.querySelector("#hint-button"),
   revealButton: document.querySelector("#reveal-button"),
   nextButton: document.querySelector("#next-button"),
   randomQuestionButton: document.querySelector("#random-question-button"),
@@ -427,7 +495,9 @@ function renderCurrentQuestion() {
     elements.questionDifficulty.textContent = "Update filters";
     elements.questionLikelihood.textContent = "No question";
     elements.questionPrompt.textContent = "No question is available for the current selection.";
+    elements.hintText.textContent = "";
     elements.answerText.textContent = "";
+    elements.hintBox.classList.add("answer--hidden");
     elements.answerBox.classList.add("answer--hidden");
     return;
   }
@@ -436,7 +506,9 @@ function renderCurrentQuestion() {
   elements.questionDifficulty.textContent = question.difficulty;
   elements.questionLikelihood.textContent = question.likelihood;
   elements.questionPrompt.textContent = question.prompt;
+  elements.hintText.textContent = question.hint;
   elements.answerText.textContent = question.answer;
+  elements.hintBox.classList.add("answer--hidden");
   elements.answerBox.classList.add("answer--hidden");
 }
 
@@ -507,6 +579,12 @@ function bindEvents() {
   elements.revealButton.addEventListener("click", () => {
     if (state.currentQuestionId) {
       elements.answerBox.classList.remove("answer--hidden");
+    }
+  });
+
+  elements.hintButton.addEventListener("click", () => {
+    if (state.currentQuestionId) {
+      elements.hintBox.classList.remove("answer--hidden");
     }
   });
 
