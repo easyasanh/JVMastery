@@ -506,7 +506,9 @@ function renderCurrentQuestion() {
   elements.questionDifficulty.textContent = question.difficulty;
   elements.questionLikelihood.textContent = question.likelihood;
   elements.questionPrompt.textContent = question.prompt;
-  elements.hintText.textContent = question.hint;
+  elements.hintText.textContent =
+    question.hint ??
+    `${question.topic} · ${question.concept}. Start with the plain definition, then add one practical detail.`;
   elements.answerText.textContent = question.answer;
   elements.hintBox.classList.add("answer--hidden");
   elements.answerBox.classList.add("answer--hidden");
