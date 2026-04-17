@@ -57,43 +57,29 @@
         </div>
       </header>
 
-      <main class="dashboard">
-        <aside class="filters panel">
-          <div class="panel__header">
-            <h2>Question Filters</h2>
-            <p>Focus the bank by difficulty, likelihood, or revision state.</p>
+      <main class="main-stack">
+        <section class="filters panel">
+          <div class="filters__bar">
+            <label class="field field--search">
+              <span>Search</span>
+              <input id="search-input" type="search" placeholder="Strings, equals, inheritance..." />
+            </label>
+
+            <div class="filters__group">
+              <span class="filters__label">Difficulty</span>
+              <div id="difficulty-pills" class="pill-grid"></div>
+            </div>
+
+            <div class="filters__group">
+              <span class="filters__label">Likelihood</span>
+              <div id="likelihood-pills" class="pill-grid"></div>
+            </div>
+
+            <button id="shuffle-filtered-button" class="button button--ghost">
+              Random From Filters
+            </button>
           </div>
-
-          <label class="field">
-            <span>Search</span>
-            <input id="search-input" type="search" placeholder="Strings, equals, inheritance..." />
-          </label>
-
-          <section class="panel__section">
-            <h3>Difficulty</h3>
-            <div id="difficulty-pills" class="pill-grid"></div>
-          </section>
-
-          <section class="panel__section">
-            <h3>Likelihood</h3>
-            <div id="likelihood-pills" class="pill-grid"></div>
-          </section>
-
-          <label class="field">
-            <span>Status</span>
-            <select id="status-select">
-              <option value="all">Any status</option>
-              <option value="unseen">Unseen</option>
-              <option value="reviewed">Reviewed</option>
-              <option value="mastered">Mastered</option>
-            </select>
-          </label>
-
-          <button id="shuffle-filtered-button" class="button button--primary button--full">
-            Shuffle Filtered Deck
-          </button>
-
-        </aside>
+        </section>
 
         <section class="practice">
           <article class="question-card panel">

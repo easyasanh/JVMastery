@@ -14,7 +14,6 @@ const elements = {
   reviewedCount: document.querySelector("#reviewed-count"),
   masteredCount: document.querySelector("#mastered-count"),
   searchInput: document.querySelector("#search-input"),
-  statusSelect: document.querySelector("#status-select"),
   difficultyPills: document.querySelector("#difficulty-pills"),
   likelihoodPills: document.querySelector("#likelihood-pills"),
   questionTopic: document.querySelector("#question-topic"),
@@ -108,7 +107,6 @@ function applyFilters() {
   const searchValue = elements.searchInput.value.trim().toLowerCase();
   const difficulty = state.selectedDifficulty;
   const likelihood = state.selectedLikelihood;
-  const status = elements.statusSelect.value;
 
   state.filteredQuestions = questions.filter((question) => {
     const matchesSearch =
@@ -126,14 +124,8 @@ function applyFilters() {
 
     const matchesDifficulty = difficulty === "all" || question.difficulty === difficulty;
     const matchesLikelihood = likelihood === "all" || question.likelihood === likelihood;
-    const questionStatus = getQuestionStatus(question.id);
-    const matchesStatus =
-      status === "all" ||
-      (status === "reviewed" && questionStatus === "reviewed") ||
-      (status === "mastered" && questionStatus === "mastered") ||
-      (status === "unseen" && questionStatus === "unseen");
 
-    return matchesSearch && matchesDifficulty && matchesLikelihood && matchesStatus;
+    return matchesSearch && matchesDifficulty && matchesLikelihood;
   });
 
   renderDeckSummary();
@@ -264,7 +256,7 @@ function updateProgressUI() {
 }
 
 function bindEvents() {
-  [elements.searchInput, elements.statusSelect].forEach((element) => {
+  [elements.searchInput].forEach((element) => {
     element.addEventListener("input", applyFilters);
     element.addEventListener("change", applyFilters);
   });
