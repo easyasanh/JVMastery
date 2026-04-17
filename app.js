@@ -1,3 +1,4 @@
+import { questions } from "./questions.js";
 const STORAGE_KEY = "jvmastry-progress-v3";
 
 const questions = [
