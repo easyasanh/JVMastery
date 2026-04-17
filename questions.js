@@ -1,4 +1,4 @@
-export const questions = [
+window.questionsBank = [
   {
     id: "core-1",
     topic: "Core Java / Fundamentals",

@@ -1,6 +1,6 @@
-import { questions } from "./questions.js";
 const STORAGE_KEY = "jvmastry-progress-v3";
 
+const questions = window.questionsBank ?? [];
 const state = {
   currentQuestionId: null,
   filteredQuestions: [...questions],
