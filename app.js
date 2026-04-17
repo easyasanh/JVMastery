@@ -13,7 +13,6 @@ const elements = {
   questionCount: document.querySelector("#question-count"),
   reviewedCount: document.querySelector("#reviewed-count"),
   masteredCount: document.querySelector("#mastered-count"),
-  searchInput: document.querySelector("#search-input"),
   difficultyPills: document.querySelector("#difficulty-pills"),
   likelihoodPills: document.querySelector("#likelihood-pills"),
   questionTopic: document.querySelector("#question-topic"),
@@ -104,28 +103,14 @@ function renderLikelihoodPills() {
 }
 
 function applyFilters() {
-  const searchValue = elements.searchInput.value.trim().toLowerCase();
   const difficulty = state.selectedDifficulty;
   const likelihood = state.selectedLikelihood;
 
   state.filteredQuestions = questions.filter((question) => {
-    const matchesSearch =
-      !searchValue ||
-      [
-        question.prompt,
-        question.answer,
-        question.topic,
-        question.difficulty,
-        question.likelihood
-      ]
-        .join(" ")
-        .toLowerCase()
-        .includes(searchValue);
-
     const matchesDifficulty = difficulty === "all" || question.difficulty === difficulty;
     const matchesLikelihood = likelihood === "all" || question.likelihood === likelihood;
 
-    return matchesSearch && matchesDifficulty && matchesLikelihood;
+    return matchesDifficulty && matchesLikelihood;
   });
 
   renderDeckSummary();
@@ -256,11 +241,6 @@ function updateProgressUI() {
 }
 
 function bindEvents() {
-  [elements.searchInput].forEach((element) => {
-    element.addEventListener("input", applyFilters);
-    element.addEventListener("change", applyFilters);
-  });
-
   elements.hintButton.addEventListener("click", () => {
     if (state.currentQuestionId) {
       elements.hintBox.classList.remove("answer--hidden");

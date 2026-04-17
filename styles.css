@@ -161,22 +161,6 @@ select {
   padding: 18px 20px;
 }
 
-.field {
-  display: grid;
-  gap: 8px;
-  margin: 18px 0;
-}
-
-.field span {
-  font-size: 0.9rem;
-  font-weight: 600;
-}
-
-.field--search {
-  min-width: min(100%, 280px);
-  margin: 0;
-}
-
 .filters__bar {
   display: flex;
   flex-wrap: wrap;
@@ -192,16 +176,6 @@ select {
 .filters__label {
   font-size: 0.9rem;
   font-weight: 600;
-  color: var(--text);
-}
-
-.field input,
-.field select {
-  width: 100%;
-  padding: 12px 14px;
-  border-radius: 12px;
-  border: 1px solid var(--border);
-  background: #fff;
   color: var(--text);
 }
 
