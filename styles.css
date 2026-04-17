@@ -58,6 +58,27 @@ select {
   padding: 36px;
 }
 
+.brand-lockup {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.brand-lockup__logo {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  flex-shrink: 0;
+}
+
+.brand-lockup__name {
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: var(--text);
+}
+
 .eyebrow {
   margin: 0 0 8px;
   font-size: 0.78rem;
