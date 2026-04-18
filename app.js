@@ -6,6 +6,7 @@ const state = {
   filteredQuestions: [...questions],
   selectedDifficulty: "all",
   selectedLikelihood: "all",
+  selectedTopic: "all",
   progress: loadProgress()
 };
 
@@ -15,6 +16,9 @@ const elements = {
   masteredCount: document.querySelector("#mastered-count"),
   difficultyPills: document.querySelector("#difficulty-pills"),
   likelihoodPills: document.querySelector("#likelihood-pills"),
+  topicMap: document.querySelector("#topic-map"),
+  masterySummary: document.querySelector("#mastery-summary"),
+  clearTopicButton: document.querySelector("#clear-topic-button"),
   questionTopic: document.querySelector("#question-topic"),
   questionDifficulty: document.querySelector("#question-difficulty"),
   questionLikelihood: document.querySelector("#question-likelihood"),
@@ -59,7 +63,140 @@ function updateQuestionStatus(questionId, status) {
   state.progress[questionId] = status;
   saveProgress();
   updateProgressUI();
+  renderTopicMap();
   renderQuestionList();
+}
+
+function getTopicStats() {
+  const topics = [...new Set(questions.map((question) => question.topic))];
+
+  return topics
+    .map((topic) => {
+      const topicQuestions = questions.filter((question) => question.topic === topic);
+      const reviewed = topicQuestions.filter(
+        (question) => getQuestionStatus(question.id) === "reviewed"
+      ).length;
+      const mastered = topicQuestions.filter(
+        (question) => getQuestionStatus(question.id) === "mastered"
+      ).length;
+      const seen = reviewed + mastered;
+      const total = topicQuestions.length;
+      const coverage = Math.round((seen / total) * 100);
+      const mastery = Math.round((mastered / total) * 100);
+      const score = Math.round((((mastered * 2) + reviewed) / (total * 2)) * 100);
+
+      let label = "Weak Spot";
+      if (seen === 0) {
+        label = "Untouched";
+      } else if (score >= 70) {
+        label = "Strong";
+      } else if (score >= 40) {
+        label = "Building";
+      }
+
+      return {
+        topic,
+        total,
+        reviewed,
+        mastered,
+        seen,
+        coverage,
+        mastery,
+        score,
+        label
+      };
+    })
+    .sort((left, right) => {
+      if (left.score !== right.score) {
+        return left.score - right.score;
+      }
+
+      return left.topic.localeCompare(right.topic);
+    });
+}
+
+function renderTopicMap() {
+  const topicStats = getTopicStats();
+  elements.topicMap.innerHTML = "";
+
+  const focusedTopic =
+    state.selectedTopic === "all" ? null : topicStats.find((item) => item.topic === state.selectedTopic);
+  const strongest = [...topicStats]
+    .sort((left, right) => right.score - left.score)
+    .slice(0, 2)
+    .map((item) => item.topic);
+  const weakest = topicStats.slice(0, 2).map((item) => item.topic);
+
+  const summaryParts = [];
+  if (focusedTopic) {
+    summaryParts.push(
+      `Focused topic: ${focusedTopic.topic} (${focusedTopic.mastered}/${focusedTopic.total} mastered, ${focusedTopic.coverage}% seen).`
+    );
+  } else {
+    summaryParts.push("Focused topic: all topics.");
+  }
+  summaryParts.push(`Weak spots: ${weakest.join(" · ")}.`);
+  summaryParts.push(`Strongest: ${strongest.join(" · ")}.`);
+  elements.masterySummary.textContent = summaryParts.join(" ");
+  elements.clearTopicButton.disabled = state.selectedTopic === "all";
+
+  topicStats.forEach((stat) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = `topic-card ${
+      state.selectedTopic === stat.topic ? "topic-card--active" : ""
+    } ${stat.label === "Strong" ? "topic-card--strong" : ""}`.trim();
+    button.addEventListener("click", () => {
+      state.selectedTopic = state.selectedTopic === stat.topic ? "all" : stat.topic;
+      renderTopicMap();
+      applyFilters();
+    });
+
+    const heading = document.createElement("div");
+    heading.className = "topic-card__heading";
+
+    const title = document.createElement("h3");
+    title.textContent = stat.topic;
+
+    const badge = document.createElement("span");
+    badge.className = `pill topic-card__badge ${
+      stat.label === "Strong" ? "topic-card__badge--strong" : ""
+    }`.trim();
+    badge.textContent = stat.label;
+
+    heading.append(title, badge);
+
+    const meta = document.createElement("p");
+    meta.className = "topic-card__meta";
+    meta.textContent = `${stat.total} questions · ${stat.seen} seen · ${stat.mastered} mastered`;
+
+    const bars = document.createElement("div");
+    bars.className = "topic-card__bars";
+    bars.innerHTML = `
+      <div>
+        <div class="progress-label">
+          <span>Coverage</span>
+          <span>${stat.coverage}%</span>
+        </div>
+        <div class="progress-track"><div class="progress-fill" style="width: ${stat.coverage}%"></div></div>
+      </div>
+      <div>
+        <div class="progress-label">
+          <span>Mastery</span>
+          <span>${stat.mastery}%</span>
+        </div>
+        <div class="progress-track"><div class="progress-fill progress-fill--accent" style="width: ${stat.mastery}%"></div></div>
+      </div>
+    `;
+
+    const footer = document.createElement("div");
+    footer.className = "topic-card__footer";
+    footer.textContent =
+      state.selectedTopic === stat.topic ? "Currently focused" : "Click to focus this topic";
+
+    button.append(heading, meta, bars, footer);
+    elements.topicMap.append(button);
+  });
 }
 
 function renderFilterPills(container, options, selected, variantClass, onSelect) {
@@ -105,14 +242,17 @@ function renderLikelihoodPills() {
 function applyFilters() {
   const difficulty = state.selectedDifficulty;
   const likelihood = state.selectedLikelihood;
+  const topic = state.selectedTopic;
 
   state.filteredQuestions = questions.filter((question) => {
     const matchesDifficulty = difficulty === "all" || question.difficulty === difficulty;
     const matchesLikelihood = likelihood === "all" || question.likelihood === likelihood;
+    const matchesTopic = topic === "all" || question.topic === topic;
 
-    return matchesDifficulty && matchesLikelihood;
+    return matchesDifficulty && matchesLikelihood && matchesTopic;
   });
 
+  renderTopicMap();
   renderDeckSummary();
   renderQuestionList();
 
@@ -123,6 +263,8 @@ function applyFilters() {
 
 function renderDeckSummary() {
   const total = state.filteredQuestions.length;
+  const topicPrefix =
+    state.selectedTopic === "all" ? "All topics." : `Topic focus: ${state.selectedTopic}.`;
   const difficultySummary = ["Beginner", "Intermediate", "Advanced"]
     .map(
       (difficulty) =>
@@ -138,7 +280,7 @@ function renderDeckSummary() {
 
   elements.deckSummary.textContent =
     total > 0
-      ? `${total} questions in the current deck. ${difficultySummary}. ${likelihoodSummary}.`
+      ? `${topicPrefix} ${total} questions in the current deck. ${difficultySummary}. ${likelihoodSummary}.`
       : "No questions match the current filters yet.";
 }
 
@@ -273,6 +415,13 @@ function bindEvents() {
     state.progress = {};
     saveProgress();
     updateProgressUI();
+    renderTopicMap();
+    applyFilters();
+  });
+
+  elements.clearTopicButton.addEventListener("click", () => {
+    state.selectedTopic = "all";
+    renderTopicMap();
     applyFilters();
   });
 }
@@ -280,6 +429,7 @@ function bindEvents() {
 function init() {
   renderDifficultyPills();
   renderLikelihoodPills();
+  renderTopicMap();
   bindEvents();
   updateProgressUI();
   applyFilters();

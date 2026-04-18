@@ -15,7 +15,7 @@
       href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="./styles.css?v=20260416-2" />
+    <link rel="stylesheet" href="./styles.css?v=20260418-1" />
   </head>
   <body>
     <div class="page-shell">
@@ -30,7 +30,8 @@
           <p class="hero__text">
             Study hundreds of core Java theory questions that often come up in
             interviews, from language basics and OOP to collections,
-            concurrency, and JVM essentials.
+            concurrency, and JVM essentials, and track which topics are strong
+            or still shaky.
           </p>
           <div class="hero__actions">
             <button id="random-question-button" class="button button--primary">
@@ -74,6 +75,18 @@
               Random From Filters
             </button>
           </div>
+        </section>
+
+        <section class="mastery panel">
+          <div class="panel__header mastery__header">
+            <div>
+              <h2>Topic Mastery Map</h2>
+              <p>See your strongest topics, weak spots, and focus one area at a time.</p>
+            </div>
+            <button id="clear-topic-button" class="button button--ghost">Show All Topics</button>
+          </div>
+          <div id="mastery-summary" class="deck-summary"></div>
+          <div id="topic-map" class="topic-map"></div>
         </section>
 
         <section class="practice">
@@ -147,6 +160,6 @@
     </div>
 
     <script src="./questions.js?v=20260417-2"></script>
-    <script src="./app.js?v=20260417-1"></script>
+    <script src="./app.js?v=20260418-1"></script>
   </body>
 </html>
