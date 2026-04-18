@@ -2383,5 +2383,421 @@ window.questionsBank = [
     "Occasional",
     "Immutability and clearer domain types matter most.",
     "java.time types are easier to reason about because they are immutable, use clearer domain-specific types, and avoid much of the confusing mutability of older date APIs."
+  ),
+  createQuestion(
+    "Generics & Types",
+    "Why can generics improve API design?",
+    "Intermediate",
+    "Common",
+    "They communicate intended types clearly.",
+    "Generics improve API design by making expected types explicit, reducing unsafe casts, and helping callers use the API correctly at compile time."
+  ),
+  createQuestion(
+    "Generics & Types",
+    "What is a raw type in Java generics?",
+    "Intermediate",
+    "Common",
+    "It is a generic type used without a type argument.",
+    "A raw type is a generic class or interface used without specifying its type parameter, such as List instead of List<String>."
+  ),
+  createQuestion(
+    "Generics & Types",
+    "Why are raw types discouraged?",
+    "Intermediate",
+    "Common",
+    "They weaken compile-time type checking.",
+    "Raw types are discouraged because they bypass much of the safety generics provide and can lead to unchecked warnings and runtime ClassCastException problems."
+  ),
+  createQuestion(
+    "Generics & Types",
+    "Why can't you create arrays of a parameterized type easily in Java?",
+    "Advanced",
+    "Occasional",
+    "Arrays and generics enforce type safety differently.",
+    "Creating arrays of parameterized types is restricted because arrays keep runtime type information while generics mostly use type erasure, which can break type safety."
+  ),
+  createQuestion(
+    "Generics & Types",
+    "Can generic exceptions be created in Java?",
+    "Advanced",
+    "Rare",
+    "Think about type erasure and exception handling rules.",
+    "Java does not support creating throwable generic classes in the usual way because exception handling relies on concrete runtime types, and type erasure makes generic exception typing unsuitable."
+  ),
+  createQuestion(
+    "Generics & Types",
+    "What is a generic interface?",
+    "Beginner",
+    "Common",
+    "The interface itself has type parameters.",
+    "A generic interface is an interface that declares one or more type parameters so implementations can work with different types safely."
+  ),
+  createQuestion(
+    "Generics & Types",
+    "What is the benefit of bounded type parameters like <T extends Number>?",
+    "Intermediate",
+    "Common",
+    "The type can be treated as at least a certain base type.",
+    "Bounded type parameters are useful because they limit accepted types while still allowing generic flexibility, and they let code safely use members of the bound."
+  ),
+  createQuestion(
+    "Generics & Types",
+    "What is multiple bounds syntax in Java generics?",
+    "Advanced",
+    "Rare",
+    "A type parameter can be restricted by a class and interfaces.",
+    "Multiple bounds let a type parameter require more than one constraint, such as <T extends Number & Comparable<T>>."
+  ),
+  createQuestion(
+    "Generics & Types",
+    "Why is List<Object> not the same as List<String> in Java generics?",
+    "Intermediate",
+    "Common",
+    "Generic types are invariant by default.",
+    "List<Object> and List<String> are different, unrelated parameterized types because Java generics are invariant. Allowing one to substitute for the other would break type safety."
+  ),
+  createQuestion(
+    "Generics & Types",
+    "What does invariance mean in Java generics?",
+    "Advanced",
+    "Occasional",
+    "Subtyping does not automatically carry over to parameterized types.",
+    "Invariance means that even if String is a subtype of Object, List<String> is not a subtype of List<Object>."
+  ),
+  createQuestion(
+    "Generics & Types",
+    "Why is List<?> often useful when a method only needs to read from a list?",
+    "Intermediate",
+    "Common",
+    "The exact element type may not matter.",
+    "List<?> is useful when code only needs to inspect elements and does not care about the exact type argument, because it can accept lists of any reference type."
+  ),
+  createQuestion(
+    "Generics & Types",
+    "What is heap pollution in Java generics?",
+    "Advanced",
+    "Rare",
+    "A variable of a parameterized type may end up referring to the wrong runtime type.",
+    "Heap pollution happens when a variable of a parameterized type refers to an object that is not really of that parameterized type, often because of raw types or unchecked operations."
+  ),
+  createQuestion(
+    "Generics & Types",
+    "Why are unchecked warnings important in generic code?",
+    "Intermediate",
+    "Occasional",
+    "They signal places where the compiler cannot fully verify type safety.",
+    "Unchecked warnings matter because they point to operations where Java cannot guarantee generic type safety, and those places can hide runtime type errors."
+  ),
+  createQuestion(
+    "Arrays & Collections",
+    "What is the difference between ArrayList capacity and size?",
+    "Intermediate",
+    "Common",
+    "One is allocated room, the other is actual element count.",
+    "size is the number of elements currently in the ArrayList. Capacity is how much internal storage is currently available before resizing is needed."
+  ),
+  createQuestion(
+    "Arrays & Collections",
+    "Why is ArrayList usually faster than LinkedList for random access?",
+    "Beginner",
+    "Common",
+    "Indexed lookup is the clue.",
+    "ArrayList is usually faster for random access because it stores elements in an array, so an index can be reached directly. LinkedList must walk through nodes."
+  ),
+  createQuestion(
+    "Arrays & Collections",
+    "Why can LinkedList be a poor default choice in Java?",
+    "Intermediate",
+    "Common",
+    "Think cache locality and traversal cost.",
+    "LinkedList can be a poor default because it uses extra memory per element, has poor cache locality, and is often slower for common access patterns than ArrayList."
+  ),
+  createQuestion(
+    "Arrays & Collections",
+    "What is the difference between remove by index and remove by object in a List?",
+    "Beginner",
+    "Common",
+    "Lists often overload remove().",
+    "remove by index deletes the element at a specific position. remove by object deletes the first matching element based on equality."
+  ),
+  createQuestion(
+    "Arrays & Collections",
+    "What is insertion order and which collection commonly preserves it?",
+    "Beginner",
+    "Occasional",
+    "This differs from sorted order.",
+    "Insertion order means elements are iterated in the order they were added. LinkedHashMap and LinkedHashSet commonly preserve insertion order."
+  ),
+  createQuestion(
+    "Arrays & Collections",
+    "What is the difference between HashMap iteration order and LinkedHashMap iteration order?",
+    "Intermediate",
+    "Common",
+    "One is unspecified, one is predictable.",
+    "HashMap does not guarantee a stable iteration order. LinkedHashMap keeps a predictable order, usually insertion order unless configured for access order."
+  ),
+  createQuestion(
+    "Arrays & Collections",
+    "What is access-order mode in LinkedHashMap?",
+    "Advanced",
+    "Rare",
+    "Entries can move when accessed.",
+    "In access-order mode, LinkedHashMap keeps entries ordered by most recent access rather than original insertion order."
+  ),
+  createQuestion(
+    "Arrays & Collections",
+    "What is the difference between Set uniqueness and Map key uniqueness?",
+    "Beginner",
+    "Common",
+    "Both use equality, but on different stored concepts.",
+    "A Set requires each element itself to be unique. A Map requires each key to be unique, while values may repeat."
+  ),
+  createQuestion(
+    "Arrays & Collections",
+    "What is natural ordering in Java collections?",
+    "Beginner",
+    "Common",
+    "Comparable defines it.",
+    "Natural ordering is the default ordering of objects as defined by their Comparable implementation."
+  ),
+  createQuestion(
+    "Arrays & Collections",
+    "Why should compareTo() be consistent with equals() when possible?",
+    "Intermediate",
+    "Common",
+    "Sorted collections can behave strangely otherwise.",
+    "If compareTo() is inconsistent with equals(), sorted collections such as TreeSet and TreeMap can behave in surprising ways because ordering and equality no longer agree."
+  ),
+  createQuestion(
+    "Arrays & Collections",
+    "What is the difference between Collections.sort() and Stream.sorted() conceptually?",
+    "Intermediate",
+    "Occasional",
+    "One mutates a list, the other returns a sorted stream pipeline result.",
+    "Collections.sort() sorts a list in place. Stream.sorted() returns a sorted stream view in a pipeline and does not mutate the original source directly."
+  ),
+  createQuestion(
+    "Arrays & Collections",
+    "Why can mutable keys be dangerous in a HashMap?",
+    "Intermediate",
+    "Common",
+    "A key's hash code or equality can change after insertion.",
+    "Mutable keys are dangerous because if the fields used by equals() or hashCode() change after insertion, the map may no longer be able to find the entry correctly."
+  ),
+  createQuestion(
+    "Arrays & Collections",
+    "What is a view collection in Java?",
+    "Advanced",
+    "Occasional",
+    "Some collections are wrappers over other backing structures.",
+    "A view collection is a collection object that presents a view over underlying data rather than owning an independent copy of that data."
+  ),
+  createQuestion(
+    "Arrays & Collections",
+    "Why does Iterator.remove() exist even though structural modification during iteration is dangerous?",
+    "Intermediate",
+    "Occasional",
+    "It provides a safe coordinated way to remove the current element.",
+    "Iterator.remove() exists because it lets the iterator update the collection in a coordinated way, avoiding the unsafe direct modification that would break fail-fast iteration."
+  ),
+  createQuestion(
+    "Arrays & Collections",
+    "What is the difference between poll() and peek() on a queue?",
+    "Beginner",
+    "Common",
+    "Removal versus inspection.",
+    "peek() reads the head element without removing it. poll() removes and returns the head element."
+  ),
+  createQuestion(
+    "Arrays & Collections",
+    "What is the difference between offer() and add() on queue-like collections?",
+    "Intermediate",
+    "Occasional",
+    "Failure handling is the distinction.",
+    "add() usually throws an exception if the element cannot be inserted. offer() usually returns a boolean to indicate success or failure."
+  ),
+  createQuestion(
+    "Arrays & Collections",
+    "Can a Deque be used as both a queue and a stack?",
+    "Beginner",
+    "Common",
+    "Double-ended operations make this possible.",
+    "Yes. A Deque can be used like a queue by working at opposite ends, or like a stack by pushing and popping from the same end."
+  ),
+  createQuestion(
+    "Arrays & Collections",
+    "What is the difference between ArrayDeque and LinkedList when used as a deque?",
+    "Intermediate",
+    "Common",
+    "ArrayDeque is usually the preferred general-purpose choice.",
+    "ArrayDeque is usually faster and more memory-efficient than LinkedList for deque operations. LinkedList has node overhead and is often slower in practice."
+  ),
+  createQuestion(
+    "Arrays & Collections",
+    "What is the difference between empty and null collections in API design?",
+    "Intermediate",
+    "Occasional",
+    "Returning an empty collection often simplifies caller code.",
+    "An empty collection means there are no elements but the result is still a valid collection. null means no collection object was returned at all, which usually forces extra null checks."
+  ),
+  createQuestion(
+    "Arrays & Collections",
+    "Why is returning empty collections often better than returning null?",
+    "Beginner",
+    "Common",
+    "It reduces special-case handling.",
+    "Returning empty collections is often better because callers can iterate or inspect them safely without extra null checks."
+  ),
+  createQuestion(
+    "Concurrency",
+    "What is the difference between starting a thread with start() and calling run() directly?",
+    "Beginner",
+    "Very Common",
+    "One creates concurrent execution, the other is just a normal method call.",
+    "start() creates a new thread of execution and then calls run() on that new thread. Calling run() directly just executes the method on the current thread."
+  ),
+  createQuestion(
+    "Concurrency",
+    "Why is shared mutable state hard in concurrent programming?",
+    "Intermediate",
+    "Common",
+    "Timing differences create correctness problems.",
+    "Shared mutable state is hard because multiple threads may read and write the same data at unpredictable times, which can cause race conditions and visibility problems."
+  ),
+  createQuestion(
+    "Concurrency",
+    "What is the difference between blocked, waiting, and timed waiting thread states?",
+    "Advanced",
+    "Occasional",
+    "One waits for a lock, one waits indefinitely, one waits with a timeout.",
+    "Blocked means a thread is waiting to acquire a monitor lock. Waiting means it is waiting indefinitely for another thread to signal it. Timed waiting means it is waiting only up to a specified timeout."
+  ),
+  createQuestion(
+    "Concurrency",
+    "Why should wait() usually be called inside a loop that re-checks a condition?",
+    "Advanced",
+    "Common",
+    "Wake-up does not guarantee the desired condition is now true.",
+    "wait() should usually be used inside a loop because a thread may wake up before the required condition is actually satisfied, so the condition must be checked again."
+  ),
+  createQuestion(
+    "Concurrency",
+    "What is a monitor in Java concurrency?",
+    "Intermediate",
+    "Common",
+    "synchronized is built on this concept.",
+    "A monitor is the locking mechanism associated with an object that Java uses for synchronized methods, synchronized blocks, and wait/notify coordination."
+  ),
+  createQuestion(
+    "Concurrency",
+    "What does it mean for a method to be synchronized at the instance level?",
+    "Intermediate",
+    "Common",
+    "The lock belongs to the current object.",
+    "An instance synchronized method uses the monitor of the current object, so only one thread at a time can execute instance synchronized code on that same object."
+  ),
+  createQuestion(
+    "Concurrency",
+    "What does it mean for a method to be synchronized at the static level?",
+    "Intermediate",
+    "Common",
+    "The lock belongs to the Class object.",
+    "A static synchronized method uses the monitor of the Class object, so it coordinates access across all instances of that class."
+  ),
+  createQuestion(
+    "Concurrency",
+    "What is the happens-before idea in the Java Memory Model at a high level?",
+    "Advanced",
+    "Occasional",
+    "It describes when one action is guaranteed to be visible to another.",
+    "The happens-before relationship describes when one memory action is guaranteed to be visible to another, helping define safe communication between threads."
+  ),
+  createQuestion(
+    "Concurrency",
+    "Why is instruction reordering relevant in concurrency?",
+    "Advanced",
+    "Occasional",
+    "Without proper synchronization, threads may observe operations in surprising orders.",
+    "Instruction reordering matters because compilers and CPUs may reorder operations for performance, and without proper synchronization other threads may observe those operations in unexpected orders."
+  ),
+  createQuestion(
+    "Concurrency",
+    "What is a producer-consumer problem in concurrency?",
+    "Intermediate",
+    "Common",
+    "One side creates work, the other side processes it.",
+    "The producer-consumer problem is a coordination pattern where producer threads generate items and consumer threads remove and process them, often using a shared queue."
+  ),
+  createQuestion(
+    "Concurrency",
+    "Why are blocking queues useful in concurrent programs?",
+    "Intermediate",
+    "Common",
+    "They coordinate producers and consumers safely.",
+    "Blocking queues are useful because they provide thread-safe handoff and coordination between producers and consumers, including waiting when the queue is empty or full."
+  ),
+  createQuestion(
+    "Concurrency",
+    "What is the difference between submit() and execute() on an executor?",
+    "Intermediate",
+    "Common",
+    "One returns a Future, one does not.",
+    "execute() runs a Runnable task without returning a result handle. submit() accepts Runnable or Callable tasks and returns a Future."
+  ),
+  createQuestion(
+    "Concurrency",
+    "What is ScheduledExecutorService used for?",
+    "Intermediate",
+    "Occasional",
+    "Tasks can run later or repeatedly.",
+    "ScheduledExecutorService is used to run tasks after a delay or at repeated intervals."
+  ),
+  createQuestion(
+    "Concurrency",
+    "What is the difference between fixed thread pools and cached thread pools conceptually?",
+    "Intermediate",
+    "Occasional",
+    "One limits workers, the other grows more freely.",
+    "A fixed thread pool uses a set number of worker threads. A cached thread pool can create new threads as needed and reuse idle ones later."
+  ),
+  createQuestion(
+    "Concurrency",
+    "Why is cancellation in concurrency usually cooperative rather than forced?",
+    "Intermediate",
+    "Common",
+    "Forced stopping can leave shared state broken.",
+    "Cancellation is usually cooperative because forcefully stopping a thread can leave shared data, locks, or resources in an unsafe state."
+  ),
+  createQuestion(
+    "Concurrency",
+    "What does Thread.currentThread() return?",
+    "Beginner",
+    "Occasional",
+    "The currently executing thread object.",
+    "Thread.currentThread() returns the Thread object representing the thread that is currently executing the code."
+  ),
+  createQuestion(
+    "Concurrency",
+    "What is a daemon thread in Java?",
+    "Intermediate",
+    "Occasional",
+    "A background support thread.",
+    "A daemon thread is a background thread that does not keep the JVM alive on its own once all user threads have finished."
+  ),
+  createQuestion(
+    "Concurrency",
+    "Why can thread pools improve performance compared with creating a new thread for each task?",
+    "Beginner",
+    "Common",
+    "Thread creation and teardown are not free.",
+    "Thread pools improve performance because they reuse existing worker threads, reducing the overhead of creating and destroying threads for every task."
+  ),
+  createQuestion(
+    "Concurrency",
+    "What is false sharing at a high level?",
+    "Advanced",
+    "Rare",
+    "Nearby memory updates can interfere even when logical variables differ.",
+    "False sharing is a performance problem where threads update separate variables that happen to share the same cache line, causing unnecessary cache invalidation."
   )
 ];
