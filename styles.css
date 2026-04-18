@@ -372,6 +372,10 @@ button.pill {
   font-weight: 700;
 }
 
+.question-label--spaced {
+  margin-top: 18px;
+}
+
 .question-card__body h2 {
   margin: 0;
   font-size: clamp(1.6rem, 2.3vw, 2.5rem);
@@ -397,6 +401,78 @@ button.pill {
   font-size: 1rem;
   line-height: 1.75;
   color: var(--text);
+}
+
+.mark-scheme {
+  margin: 0;
+  padding-left: 20px;
+  display: grid;
+  gap: 8px;
+  color: var(--text);
+}
+
+.mark-scheme li {
+  line-height: 1.6;
+}
+
+.score-box {
+  margin-top: 20px;
+  padding-top: 18px;
+  border-top: 1px solid var(--border);
+  display: grid;
+  gap: 12px;
+}
+
+.score-box__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.score-box__header .question-label {
+  margin-bottom: 0;
+}
+
+.score-state {
+  color: var(--muted);
+  font-size: 0.92rem;
+  font-weight: 500;
+}
+
+.score-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.score-chip {
+  border: 1px solid var(--border);
+  background: #fff;
+  color: var(--text);
+  border-radius: 999px;
+  padding: 10px 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    transform 180ms ease,
+    border-color 180ms ease,
+    background-color 180ms ease,
+    color 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.score-chip:hover {
+  transform: translateY(-1px);
+  border-color: var(--border-strong);
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.05);
+}
+
+.score-chip--active {
+  background: var(--primary);
+  color: #fff;
+  border-color: var(--primary);
+  box-shadow: 0 8px 18px rgba(37, 99, 235, 0.18);
 }
 
 .answer--hidden {
@@ -520,6 +596,11 @@ button.pill {
 
   .mastery__header {
     flex-direction: column;
+  }
+
+  .score-box__header {
+    flex-direction: column;
+    align-items: flex-start;
   }
 
   .pill-grid {

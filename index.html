@@ -6,7 +6,7 @@
     <title>JVMastery</title>
     <meta
       name="description"
-      content="A GitHub Pages-ready core Java theory question bank with hundreds of graded questions."
+      content="A GitHub Pages-ready core Java theory question bank with self-scored mark schemes and topic mastery tracking."
     />
     <link rel="icon" type="image/svg+xml" href="./favicon.svg?v=20260417-1" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -28,10 +28,9 @@
           <p class="eyebrow">Core Java Theory Bank</p>
           <h1>Build a deep, searchable bank of core Java knowledge.</h1>
           <p class="hero__text">
-            Study hundreds of core Java theory questions that often come up in
-            interviews, from language basics and OOP to collections,
-            concurrency, and JVM essentials, and track which topics are strong
-            or still shaky.
+            Study hundreds of core Java theory questions with hints, concise
+            answers, and mark schemes, then score yourself to see which topics
+            are strong and which ones still need work.
           </p>
           <div class="hero__actions">
             <button id="random-question-button" class="button button--primary">
@@ -48,12 +47,12 @@
             <strong id="question-count">0</strong>
           </div>
           <div class="stat-card">
-            <span class="stat-card__label">Reviewed</span>
-            <strong id="reviewed-count">0</strong>
+            <span class="stat-card__label">Attempted</span>
+            <strong id="attempted-count">0</strong>
           </div>
           <div class="stat-card">
-            <span class="stat-card__label">Mastered</span>
-            <strong id="mastered-count">0</strong>
+            <span class="stat-card__label">Average Score</span>
+            <strong id="average-score">0%</strong>
           </div>
         </div>
       </header>
@@ -107,6 +106,15 @@
               <div id="question-answer" class="answer answer--hidden" aria-live="polite">
                 <p class="question-label">Answer</p>
                 <p id="question-answer-text"></p>
+                <p class="question-label question-label--spaced">Mark Scheme</p>
+                <ol id="question-mark-scheme" class="mark-scheme"></ol>
+                <div class="score-box">
+                  <div class="score-box__header">
+                    <p class="question-label">Score Yourself</p>
+                    <span id="score-state" class="score-state"></span>
+                  </div>
+                  <div id="score-buttons" class="score-buttons"></div>
+                </div>
               </div>
             </div>
 
@@ -119,29 +127,24 @@
 
           <section class="question-tools panel">
             <div class="panel__header">
-              <h2>Session Controls</h2>
-              <p>Track what you have covered and what still needs revision.</p>
-            </div>
-
-            <div class="session-actions">
-              <button id="mark-reviewed-button" class="button button--ghost">Mark Reviewed</button>
-              <button id="mark-mastered-button" class="button button--primary">Mark Mastered</button>
+              <h2>Scoring</h2>
+              <p>Reveal the answer, check the mark scheme, and score how many points you got.</p>
             </div>
 
             <div class="progress-bars">
               <div>
                 <div class="progress-label">
-                  <span>Reviewed coverage</span>
-                  <span id="reviewed-percent">0%</span>
+                  <span>Attempt coverage</span>
+                  <span id="attempted-percent">0%</span>
                 </div>
-                <div class="progress-track"><div id="reviewed-bar" class="progress-fill"></div></div>
+                <div class="progress-track"><div id="attempted-bar" class="progress-fill"></div></div>
               </div>
               <div>
                 <div class="progress-label">
-                  <span>Mastery coverage</span>
-                  <span id="mastered-percent">0%</span>
+                  <span>Average score</span>
+                  <span id="score-percent">0%</span>
                 </div>
-                <div class="progress-track"><div id="mastered-bar" class="progress-fill progress-fill--accent"></div></div>
+                <div class="progress-track"><div id="score-bar" class="progress-fill progress-fill--accent"></div></div>
               </div>
             </div>
 
@@ -160,6 +163,6 @@
     </div>
 
     <script src="./questions.js?v=20260417-2"></script>
-    <script src="./app.js?v=20260418-1"></script>
+    <script src="./app.js?v=20260418-2"></script>
   </body>
 </html>

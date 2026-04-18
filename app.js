@@ -1,6 +1,6 @@
-const STORAGE_KEY = "jvmastry-progress-v3";
+const STORAGE_KEY = "jvmastry-progress-v4";
 
-const questions = window.questionsBank ?? [];
+const questions = (window.questionsBank ?? []).map(enrichQuestion);
 const state = {
   currentQuestionId: null,
   filteredQuestions: [...questions],
@@ -12,8 +12,8 @@ const state = {
 
 const elements = {
   questionCount: document.querySelector("#question-count"),
-  reviewedCount: document.querySelector("#reviewed-count"),
-  masteredCount: document.querySelector("#mastered-count"),
+  attemptedCount: document.querySelector("#attempted-count"),
+  averageScore: document.querySelector("#average-score"),
   difficultyPills: document.querySelector("#difficulty-pills"),
   likelihoodPills: document.querySelector("#likelihood-pills"),
   topicMap: document.querySelector("#topic-map"),
@@ -27,43 +27,154 @@ const elements = {
   hintText: document.querySelector("#question-hint-text"),
   answerBox: document.querySelector("#question-answer"),
   answerText: document.querySelector("#question-answer-text"),
+  markSchemeList: document.querySelector("#question-mark-scheme"),
+  scoreState: document.querySelector("#score-state"),
+  scoreButtons: document.querySelector("#score-buttons"),
   hintButton: document.querySelector("#hint-button"),
   revealButton: document.querySelector("#reveal-button"),
   nextButton: document.querySelector("#next-button"),
   randomQuestionButton: document.querySelector("#random-question-button"),
   shuffleFilteredButton: document.querySelector("#shuffle-filtered-button"),
-  markReviewedButton: document.querySelector("#mark-reviewed-button"),
-  markMasteredButton: document.querySelector("#mark-mastered-button"),
-  reviewedPercent: document.querySelector("#reviewed-percent"),
-  masteredPercent: document.querySelector("#mastered-percent"),
-  reviewedBar: document.querySelector("#reviewed-bar"),
-  masteredBar: document.querySelector("#mastered-bar"),
+  attemptedPercent: document.querySelector("#attempted-percent"),
+  scorePercent: document.querySelector("#score-percent"),
+  attemptedBar: document.querySelector("#attempted-bar"),
+  scoreBar: document.querySelector("#score-bar"),
   deckSummary: document.querySelector("#deck-summary"),
   questionList: document.querySelector("#question-list"),
   resetProgressButton: document.querySelector("#reset-progress-button")
 };
 
+function enrichQuestion(question) {
+  const markScheme = buildMarkScheme(question);
+  return {
+    ...question,
+    markScheme,
+    totalMarks: markScheme.length
+  };
+}
+
+function buildMarkScheme(question) {
+  if (Array.isArray(question.markScheme) && question.markScheme.length > 0) {
+    return question.markScheme;
+  }
+
+  const normalizedAnswer = question.answer.replace(/\s+/g, " ").trim();
+  let parts = normalizedAnswer
+    .split(/(?<=[.!?])\s+/)
+    .map((part) => part.trim())
+    .filter(Boolean);
+
+  if (parts.length === 1) {
+    parts = normalizedAnswer
+      .split(/,\s+/)
+      .map((part) => part.trim())
+      .filter((part) => part.length > 10);
+  }
+
+  const condensed = [];
+  for (const part of parts) {
+    if (condensed.length === 4) {
+      break;
+    }
+
+    let text = part.replace(/[.]+$/g, "").trim();
+    if (text.length < 12) {
+      continue;
+    }
+    text = text.charAt(0).toUpperCase() + text.slice(1);
+    condensed.push(text);
+  }
+
+  if (condensed.length === 0) {
+    condensed.push(normalizedAnswer);
+  }
+
+  if (condensed.length === 1 && condensed[0].includes(" and ")) {
+    return condensed[0]
+      .split(/\s+and\s+/)
+      .map((part) => part.trim())
+      .filter((part) => part.length > 8)
+      .slice(0, 4);
+  }
+
+  return condensed.slice(0, 4);
+}
+
 function loadProgress() {
   try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY)) ?? {};
+    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY)) ?? {};
+    return Object.fromEntries(
+      Object.entries(saved).map(([questionId, value]) => [questionId, normalizeProgressEntry(value)])
+    );
   } catch {
     return {};
   }
+}
+
+function normalizeProgressEntry(value) {
+  if (!value) {
+    return null;
+  }
+
+  if (typeof value === "string") {
+    if (value === "mastered") {
+      return { earnedMarks: 2, totalMarks: 2 };
+    }
+
+    if (value === "reviewed") {
+      return { earnedMarks: 1, totalMarks: 2 };
+    }
+
+    return null;
+  }
+
+  const earnedMarks = Number.isFinite(value.earnedMarks) ? value.earnedMarks : 0;
+  const totalMarks = Number.isFinite(value.totalMarks) && value.totalMarks > 0 ? value.totalMarks : 1;
+  return {
+    earnedMarks: Math.max(0, Math.min(earnedMarks, totalMarks)),
+    totalMarks
+  };
 }
 
 function saveProgress() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state.progress));
 }
 
-function getQuestionStatus(questionId) {
-  return state.progress[questionId] ?? "unseen";
+function getQuestionProgress(questionId) {
+  return state.progress[questionId] ?? null;
 }
 
-function updateQuestionStatus(questionId, status) {
-  state.progress[questionId] = status;
+function isAttempted(questionId) {
+  return Boolean(getQuestionProgress(questionId));
+}
+
+function getQuestionScore(question) {
+  const progress = getQuestionProgress(question.id);
+  if (!progress) {
+    return null;
+  }
+
+  const totalMarks = question.totalMarks || progress.totalMarks || 1;
+  return {
+    earnedMarks: Math.max(0, Math.min(progress.earnedMarks, totalMarks)),
+    totalMarks
+  };
+}
+
+function updateQuestionScore(questionId, earnedMarks) {
+  const question = questions.find((item) => item.id === questionId);
+  if (!question) {
+    return;
+  }
+
+  state.progress[questionId] = {
+    earnedMarks,
+    totalMarks: question.totalMarks
+  };
   saveProgress();
   updateProgressUI();
   renderTopicMap();
+  renderCurrentQuestion();
   renderQuestionList();
 }
 
@@ -73,33 +184,42 @@ function getTopicStats() {
   return topics
     .map((topic) => {
       const topicQuestions = questions.filter((question) => question.topic === topic);
-      const reviewed = topicQuestions.filter(
-        (question) => getQuestionStatus(question.id) === "reviewed"
-      ).length;
-      const mastered = topicQuestions.filter(
-        (question) => getQuestionStatus(question.id) === "mastered"
-      ).length;
-      const seen = reviewed + mastered;
+      const attemptedQuestions = topicQuestions.filter((question) => isAttempted(question.id));
+      const earnedMarks = topicQuestions.reduce((sum, question) => {
+        const score = getQuestionScore(question);
+        return sum + (score ? score.earnedMarks : 0);
+      }, 0);
+      const possibleMarks = topicQuestions.reduce((sum, question) => sum + question.totalMarks, 0);
+      const attemptedPossibleMarks = attemptedQuestions.reduce(
+        (sum, question) => sum + question.totalMarks,
+        0
+      );
+      const attempted = attemptedQuestions.length;
+      const perfect = attemptedQuestions.filter((question) => {
+        const score = getQuestionScore(question);
+        return score && score.earnedMarks === score.totalMarks;
+      }).length;
       const total = topicQuestions.length;
-      const coverage = Math.round((seen / total) * 100);
-      const mastery = Math.round((mastered / total) * 100);
-      const score = Math.round((((mastered * 2) + reviewed) / (total * 2)) * 100);
+      const coverage = Math.round((attempted / total) * 100);
+      const mastery = attemptedPossibleMarks
+        ? Math.round((earnedMarks / attemptedPossibleMarks) * 100)
+        : 0;
+      const score = Math.round((earnedMarks / possibleMarks) * 100);
 
       let label = "Weak Spot";
-      if (seen === 0) {
+      if (attempted === 0) {
         label = "Untouched";
-      } else if (score >= 70) {
+      } else if (mastery >= 75 && coverage >= 35) {
         label = "Strong";
-      } else if (score >= 40) {
+      } else if (mastery >= 45 || coverage >= 20) {
         label = "Building";
       }
 
       return {
         topic,
         total,
-        reviewed,
-        mastered,
-        seen,
+        attempted,
+        perfect,
         coverage,
         mastery,
         score,
@@ -130,13 +250,17 @@ function renderTopicMap() {
   const summaryParts = [];
   if (focusedTopic) {
     summaryParts.push(
-      `Focused topic: ${focusedTopic.topic} (${focusedTopic.mastered}/${focusedTopic.total} mastered, ${focusedTopic.coverage}% seen).`
+      `Focused topic: ${focusedTopic.topic} (${focusedTopic.attempted}/${focusedTopic.total} attempted, ${focusedTopic.mastery}% average score).`
     );
   } else {
     summaryParts.push("Focused topic: all topics.");
   }
-  summaryParts.push(`Weak spots: ${weakest.join(" · ")}.`);
-  summaryParts.push(`Strongest: ${strongest.join(" · ")}.`);
+  if (weakest.length > 0) {
+    summaryParts.push(`Weak spots: ${weakest.join(" · ")}.`);
+  }
+  if (strongest.length > 0) {
+    summaryParts.push(`Strongest: ${strongest.join(" · ")}.`);
+  }
   elements.masterySummary.textContent = summaryParts.join(" ");
   elements.clearTopicButton.disabled = state.selectedTopic === "all";
 
@@ -168,7 +292,7 @@ function renderTopicMap() {
 
     const meta = document.createElement("p");
     meta.className = "topic-card__meta";
-    meta.textContent = `${stat.total} questions · ${stat.seen} seen · ${stat.mastered} mastered`;
+    meta.textContent = `${stat.total} questions · ${stat.attempted} attempted · ${stat.perfect} full marks`;
 
     const bars = document.createElement("div");
     bars.className = "topic-card__bars";
@@ -182,7 +306,7 @@ function renderTopicMap() {
       </div>
       <div>
         <div class="progress-label">
-          <span>Mastery</span>
+          <span>Average score</span>
           <span>${stat.mastery}%</span>
         </div>
         <div class="progress-track"><div class="progress-fill progress-fill--accent" style="width: ${stat.mastery}%"></div></div>
@@ -291,12 +415,38 @@ function pickNextQuestion() {
     return;
   }
 
-  const unseenFirst = state.filteredQuestions.filter(
-    (question) => getQuestionStatus(question.id) === "unseen"
-  );
+  const unseenFirst = state.filteredQuestions.filter((question) => !isAttempted(question.id));
   const source = unseenFirst.length > 0 ? unseenFirst : state.filteredQuestions;
   state.currentQuestionId = source[Math.floor(Math.random() * source.length)].id;
   renderCurrentQuestion();
+}
+
+function renderScoreButtons(question) {
+  elements.scoreButtons.innerHTML = "";
+
+  for (let marks = 0; marks <= question.totalMarks; marks += 1) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "score-chip";
+    button.textContent = `${marks}/${question.totalMarks}`;
+    button.addEventListener("click", () => updateQuestionScore(question.id, marks));
+
+    const score = getQuestionScore(question);
+    if (score && score.earnedMarks === marks) {
+      button.classList.add("score-chip--active");
+    }
+
+    elements.scoreButtons.append(button);
+  }
+}
+
+function renderMarkScheme(question) {
+  elements.markSchemeList.innerHTML = "";
+  question.markScheme.forEach((point) => {
+    const item = document.createElement("li");
+    item.textContent = point;
+    elements.markSchemeList.append(item);
+  });
 }
 
 function renderCurrentQuestion() {
@@ -309,10 +459,15 @@ function renderCurrentQuestion() {
     elements.questionPrompt.textContent = "No question is available for the current selection.";
     elements.hintText.textContent = "";
     elements.answerText.textContent = "";
+    elements.markSchemeList.innerHTML = "";
+    elements.scoreState.textContent = "";
+    elements.scoreButtons.innerHTML = "";
     elements.hintBox.classList.add("answer--hidden");
     elements.answerBox.classList.add("answer--hidden");
     return;
   }
+
+  const score = getQuestionScore(question);
 
   elements.questionTopic.textContent = question.topic;
   elements.questionDifficulty.textContent = question.difficulty;
@@ -320,8 +475,23 @@ function renderCurrentQuestion() {
   elements.questionPrompt.textContent = question.prompt;
   elements.hintText.textContent = question.hint;
   elements.answerText.textContent = question.answer;
+  renderMarkScheme(question);
+  renderScoreButtons(question);
+  elements.scoreState.textContent = score
+    ? `Current score: ${score.earnedMarks}/${score.totalMarks}`
+    : `Score yourself out of ${question.totalMarks} after checking the mark scheme.`;
   elements.hintBox.classList.add("answer--hidden");
   elements.answerBox.classList.add("answer--hidden");
+}
+
+function getQuestionStatusLabel(question) {
+  const score = getQuestionScore(question);
+  if (!score) {
+    return "Unattempted";
+  }
+
+  const percentage = Math.round((score.earnedMarks / score.totalMarks) * 100);
+  return `Score: ${score.earnedMarks}/${score.totalMarks} (${percentage}%)`;
 }
 
 function renderQuestionList() {
@@ -359,7 +529,7 @@ function renderQuestionList() {
 
     const status = document.createElement("div");
     status.className = "question-list__status";
-    status.textContent = `Status: ${getQuestionStatus(question.id)}`;
+    status.textContent = getQuestionStatusLabel(question);
 
     button.append(meta, title, status);
     elements.questionList.append(button);
@@ -367,19 +537,25 @@ function renderQuestionList() {
 }
 
 function updateProgressUI() {
-  const reviewedCount = Object.values(state.progress).filter((value) => value === "reviewed").length;
-  const masteredCount = Object.values(state.progress).filter((value) => value === "mastered").length;
+  const attempted = questions.filter((question) => isAttempted(question.id));
+  const attemptedCount = attempted.length;
   const total = questions.length;
-  const reviewedCoverage = Math.round(((reviewedCount + masteredCount) / total) * 100);
-  const masteredCoverage = Math.round((masteredCount / total) * 100);
+  const earnedMarks = attempted.reduce((sum, question) => {
+    const score = getQuestionScore(question);
+    return sum + (score ? score.earnedMarks : 0);
+  }, 0);
+  const possibleAttemptedMarks = attempted.reduce((sum, question) => sum + question.totalMarks, 0);
+  const attemptedCoverage = total === 0 ? 0 : Math.round((attemptedCount / total) * 100);
+  const averageScore =
+    possibleAttemptedMarks === 0 ? 0 : Math.round((earnedMarks / possibleAttemptedMarks) * 100);
 
   elements.questionCount.textContent = total.toString();
-  elements.reviewedCount.textContent = (reviewedCount + masteredCount).toString();
-  elements.masteredCount.textContent = masteredCount.toString();
-  elements.reviewedPercent.textContent = `${reviewedCoverage}%`;
-  elements.masteredPercent.textContent = `${masteredCoverage}%`;
-  elements.reviewedBar.style.width = `${reviewedCoverage}%`;
-  elements.masteredBar.style.width = `${masteredCoverage}%`;
+  elements.attemptedCount.textContent = attemptedCount.toString();
+  elements.averageScore.textContent = `${averageScore}%`;
+  elements.attemptedPercent.textContent = `${attemptedCoverage}%`;
+  elements.scorePercent.textContent = `${averageScore}%`;
+  elements.attemptedBar.style.width = `${attemptedCoverage}%`;
+  elements.scoreBar.style.width = `${averageScore}%`;
 }
 
 function bindEvents() {
@@ -398,18 +574,6 @@ function bindEvents() {
   elements.nextButton.addEventListener("click", pickNextQuestion);
   elements.randomQuestionButton.addEventListener("click", pickNextQuestion);
   elements.shuffleFilteredButton.addEventListener("click", pickNextQuestion);
-
-  elements.markReviewedButton.addEventListener("click", () => {
-    if (state.currentQuestionId) {
-      updateQuestionStatus(state.currentQuestionId, "reviewed");
-    }
-  });
-
-  elements.markMasteredButton.addEventListener("click", () => {
-    if (state.currentQuestionId) {
-      updateQuestionStatus(state.currentQuestionId, "mastered");
-    }
-  });
 
   elements.resetProgressButton.addEventListener("click", () => {
     state.progress = {};
