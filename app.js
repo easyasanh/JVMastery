@@ -7,6 +7,8 @@ const state = {
   selectedDifficulty: "all",
   selectedLikelihood: "all",
   selectedTopic: "all",
+  hintVisible: false,
+  answerVisible: false,
   progress: loadProgress()
 };
 
@@ -176,6 +178,13 @@ function updateQuestionScore(questionId, earnedMarks) {
   renderTopicMap();
   renderCurrentQuestion();
   renderQuestionList();
+}
+
+function setCurrentQuestion(questionId) {
+  state.currentQuestionId = questionId;
+  state.hintVisible = false;
+  state.answerVisible = false;
+  renderCurrentQuestion();
 }
 
 function getTopicStats() {
@@ -411,14 +420,15 @@ function renderDeckSummary() {
 function pickNextQuestion() {
   if (state.filteredQuestions.length === 0) {
     state.currentQuestionId = null;
+    state.hintVisible = false;
+    state.answerVisible = false;
     renderCurrentQuestion();
     return;
   }
 
   const unseenFirst = state.filteredQuestions.filter((question) => !isAttempted(question.id));
   const source = unseenFirst.length > 0 ? unseenFirst : state.filteredQuestions;
-  state.currentQuestionId = source[Math.floor(Math.random() * source.length)].id;
-  renderCurrentQuestion();
+  setCurrentQuestion(source[Math.floor(Math.random() * source.length)].id);
 }
 
 function renderScoreButtons(question) {
@@ -480,8 +490,8 @@ function renderCurrentQuestion() {
   elements.scoreState.textContent = score
     ? `Current score: ${score.earnedMarks}/${score.totalMarks}`
     : `Score yourself out of ${question.totalMarks} after checking the mark scheme.`;
-  elements.hintBox.classList.add("answer--hidden");
-  elements.answerBox.classList.add("answer--hidden");
+  elements.hintBox.classList.toggle("answer--hidden", !state.hintVisible);
+  elements.answerBox.classList.toggle("answer--hidden", !state.answerVisible);
 }
 
 function getQuestionStatusLabel(question) {
@@ -502,8 +512,7 @@ function renderQuestionList() {
     button.type = "button";
     button.className = "question-list__item";
     button.addEventListener("click", () => {
-      state.currentQuestionId = question.id;
-      renderCurrentQuestion();
+      setCurrentQuestion(question.id);
       window.scrollTo({ top: 0, behavior: "smooth" });
     });
 
@@ -561,12 +570,14 @@ function updateProgressUI() {
 function bindEvents() {
   elements.hintButton.addEventListener("click", () => {
     if (state.currentQuestionId) {
+      state.hintVisible = true;
       elements.hintBox.classList.remove("answer--hidden");
     }
   });
 
   elements.revealButton.addEventListener("click", () => {
     if (state.currentQuestionId) {
+      state.answerVisible = true;
       elements.answerBox.classList.remove("answer--hidden");
     }
   });
