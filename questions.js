@@ -1935,5 +1935,453 @@ window.questionsBank = [
     "Rare",
     "Named modules with explicit dependencies.",
     "The Java module system lets applications organize code into named modules with explicit dependencies and controlled exports."
+  ),
+  createQuestion(
+    "Language Basics",
+    "What is the difference between static and instance methods?",
+    "Beginner",
+    "Very Common",
+    "Class-level behavior versus object-level behavior.",
+    "A static method belongs to the class and can be called without creating an object. An instance method belongs to an object and can use that object's state."
+  ),
+  createQuestion(
+    "Language Basics",
+    "Can a static method access instance fields directly?",
+    "Beginner",
+    "Common",
+    "A static method has no current object unless you give it one.",
+    "No. A static method cannot directly access instance fields or instance methods because it does not run on a specific object unless one is provided."
+  ),
+  createQuestion(
+    "Language Basics",
+    "What is a static block in Java?",
+    "Intermediate",
+    "Common",
+    "Class-level initialization that runs once.",
+    "A static block is a block of code that runs when the class is initialized. It is commonly used for class-level setup."
+  ),
+  createQuestion(
+    "Language Basics",
+    "Why is final often used for constants in Java?",
+    "Beginner",
+    "Common",
+    "The value should not change after initialization.",
+    "final is used for constants because it prevents reassignment after initialization, which makes the value stable and predictable."
+  ),
+  createQuestion(
+    "Language Basics",
+    "What does native mean in Java?",
+    "Intermediate",
+    "Common",
+    "The implementation lives outside Java source.",
+    "native marks a method whose implementation is written in another language, usually C or C++, and linked to Java through native interfaces."
+  ),
+  createQuestion(
+    "Language Basics",
+    "When might the native keyword be used?",
+    "Advanced",
+    "Occasional",
+    "Think platform-specific or low-level integration.",
+    "native may be used when Java code needs to call platform-specific code, low-level system APIs, or existing non-Java libraries."
+  ),
+  createQuestion(
+    "OOP & Design",
+    "How does encapsulation improve maintainability?",
+    "Intermediate",
+    "Common",
+    "Hiding internals reduces ripple effects.",
+    "Encapsulation improves maintainability by hiding internal details behind a clear interface. That means internal code can change without forcing callers to change."
+  ),
+  createQuestion(
+    "OOP & Design",
+    "How does polymorphism help reduce coupling?",
+    "Intermediate",
+    "Common",
+    "Code can depend on abstractions instead of concrete classes.",
+    "Polymorphism reduces coupling because code can work with an interface or base type instead of depending on a specific implementation."
+  ),
+  createQuestion(
+    "OOP & Design",
+    "Why is abstraction useful in API design?",
+    "Intermediate",
+    "Common",
+    "It keeps callers focused on what something does, not how.",
+    "Abstraction is useful in API design because it exposes only the important behavior and hides unnecessary implementation details, making APIs simpler and easier to change safely."
+  ),
+  createQuestion(
+    "OOP & Design",
+    "What is the difference between association, aggregation, and composition?",
+    "Intermediate",
+    "Common",
+    "These are all object relationships, but ownership differs.",
+    "Association is a general relationship between objects. Aggregation is a weaker whole-part relationship where parts can exist independently. Composition is a stronger whole-part relationship where parts are owned by the whole and usually share its lifetime."
+  ),
+  createQuestion(
+    "OOP & Design",
+    "What is association in object-oriented design?",
+    "Beginner",
+    "Common",
+    "A general connection between objects.",
+    "Association means one object knows about or uses another object. It is the broadest kind of relationship between objects."
+  ),
+  createQuestion(
+    "OOP & Design",
+    "What is aggregation in object-oriented design?",
+    "Intermediate",
+    "Common",
+    "A whole-part relationship with independent parts.",
+    "Aggregation is a relationship where one object groups other objects, but those part objects can still exist independently of the whole."
+  ),
+  createQuestion(
+    "OOP & Design",
+    "What is composition in object-oriented design?",
+    "Intermediate",
+    "Common",
+    "A stronger whole-part relationship with ownership.",
+    "Composition is a relationship where one object strongly owns other objects, and the owned objects are usually tied to the lifetime of the whole."
+  ),
+  createQuestion(
+    "OOP & Design",
+    "What is the difference between an abstract class and an interface after Java 8?",
+    "Intermediate",
+    "Common",
+    "Default methods narrowed the gap, but the types still serve different roles.",
+    "An interface is mainly a contract and can now include default and static methods. An abstract class can hold instance state, constructors, and shared base implementation."
+  ),
+  createQuestion(
+    "OOP & Design",
+    "When is an abstract class a better choice than an interface?",
+    "Intermediate",
+    "Common",
+    "Shared state and reusable base logic are the clue.",
+    "An abstract class is a better choice when related subclasses need shared fields, shared constructor logic, or common implementation that belongs in one base type."
+  ),
+  createQuestion(
+    "OOP & Design",
+    "Why can't abstract classes be instantiated directly?",
+    "Beginner",
+    "Common",
+    "They may represent incomplete behavior.",
+    "Abstract classes cannot be instantiated directly because they may contain abstract methods or represent incomplete templates meant to be finished by subclasses."
+  ),
+  createQuestion(
+    "OOP & Design",
+    "How does dynamic binding enable runtime polymorphism?",
+    "Intermediate",
+    "Common",
+    "The method is chosen from the real object type at runtime.",
+    "Dynamic binding enables runtime polymorphism because the JVM chooses the overridden instance method based on the actual object type, not just the reference type."
+  ),
+  createQuestion(
+    "Memory & Runtime",
+    "Why are equals(), hashCode(), and toString() commonly overridden together with domain objects?",
+    "Intermediate",
+    "Common",
+    "Think logical equality, collections, and debugging.",
+    "They are commonly overridden so objects can define logical equality, behave correctly in hash-based collections, and provide a useful text representation for debugging."
+  ),
+  createQuestion(
+    "Memory & Runtime",
+    "What is the default behavior of equals() in Object?",
+    "Beginner",
+    "Common",
+    "It checks identity unless overridden.",
+    "The default equals() implementation in Object compares references, so it checks whether two references point to the same object."
+  ),
+  createQuestion(
+    "Strings",
+    "Why does the string pool improve memory usage?",
+    "Intermediate",
+    "Common",
+    "Duplicate literals can share one object.",
+    "The string pool improves memory usage by allowing identical string literals to share a single String object instead of creating separate copies."
+  ),
+  createQuestion(
+    "Strings",
+    "What is the difference between creating a String with a literal and with new String()?",
+    "Intermediate",
+    "Common",
+    "Pooling behavior is the key distinction.",
+    "A string literal can reuse a pooled String object. new String() always creates a new String object, even if an equal pooled string already exists."
+  ),
+  createQuestion(
+    "Arrays & Collections",
+    "When should you use Comparable instead of Comparator?",
+    "Intermediate",
+    "Common",
+    "Natural ordering versus alternate orderings.",
+    "Use Comparable when a class has one natural ordering that belongs inside the class. Use Comparator when you need different orderings or cannot change the class."
+  ),
+  createQuestion(
+    "Arrays & Collections",
+    "What must compareTo() and compare() return semantically?",
+    "Intermediate",
+    "Occasional",
+    "Negative, zero, and positive values indicate ordering.",
+    "They should return a negative value when the first item is smaller, zero when they are considered equal for ordering, and a positive value when the first item is larger."
+  ),
+  createQuestion(
+    "Generics & Types",
+    "Why does type erasure exist in Java generics?",
+    "Advanced",
+    "Common",
+    "Backward compatibility with older Java bytecode is central here.",
+    "Type erasure exists largely so generics could be added without breaking compatibility with older JVMs and non-generic bytecode."
+  ),
+  createQuestion(
+    "Generics & Types",
+    "Why do generics reduce ClassCastException risk?",
+    "Beginner",
+    "Common",
+    "They move type checks to compile time.",
+    "Generics reduce ClassCastException risk because they let the compiler catch type mismatches before the program runs."
+  ),
+  createQuestion(
+    "Generics & Types",
+    "What is an unbounded wildcard in Java generics?",
+    "Beginner",
+    "Common",
+    "This is the meaning of <?>.",
+    "An unbounded wildcard is <?>. It means the code can work with a generic type whose exact type argument is unknown."
+  ),
+  createQuestion(
+    "Generics & Types",
+    "Why is <? extends T> good for reading but not writing?",
+    "Advanced",
+    "Common",
+    "The exact subtype is unknown.",
+    "With <? extends T>, you know elements are some subtype of T, so reading as T is safe. Writing is unsafe because the exact subtype expected by the structure is unknown."
+  ),
+  createQuestion(
+    "Generics & Types",
+    "Why is <? super T> useful for writing values?",
+    "Advanced",
+    "Common",
+    "Any supertype container can safely accept T values.",
+    "With <? super T>, the structure is known to accept T or its subtypes as inserted values, so writing T values is safe."
+  ),
+  createQuestion(
+    "Generics & Types",
+    "What is the difference between a bounded type parameter and a wildcard?",
+    "Advanced",
+    "Occasional",
+    "One names a type parameter, the other describes an unknown one.",
+    "A bounded type parameter declares and names a generic type variable with restrictions, such as <T extends Number>. A wildcard describes an unknown existing type argument, such as <? extends Number>."
+  ),
+  createQuestion(
+    "Functional Java",
+    "Why do lambdas work only with functional interfaces?",
+    "Intermediate",
+    "Common",
+    "The compiler needs one target abstract method.",
+    "Lambdas work with functional interfaces because the compiler needs exactly one abstract method to know what method signature the lambda should implement."
+  ),
+  createQuestion(
+    "Functional Java",
+    "Can a functional interface contain default or static methods?",
+    "Intermediate",
+    "Common",
+    "The rule is about abstract methods only.",
+    "Yes. A functional interface may contain default and static methods. It is still functional as long as it has exactly one abstract method."
+  ),
+  createQuestion(
+    "Functional Java",
+    "What problem do streams solve compared with manual loops?",
+    "Intermediate",
+    "Common",
+    "Think declarative data processing.",
+    "Streams make data processing more declarative by focusing on what transformations and filters should happen instead of manually controlling every loop step."
+  ),
+  createQuestion(
+    "Functional Java",
+    "What is the difference between map() and flatMap()?",
+    "Intermediate",
+    "Common",
+    "One transforms each element, the other also flattens nested results.",
+    "map() turns each input element into one output element. flatMap() turns each input element into a stream-like result and then flattens those results into one stream."
+  ),
+  createQuestion(
+    "Functional Java",
+    "When can parallel streams be a bad fit?",
+    "Advanced",
+    "Occasional",
+    "Small workloads, shared mutable state, and ordering costs are clues.",
+    "Parallel streams can be a bad fit for small workloads, operations with shared mutable state, tasks with high coordination overhead, or pipelines where preserving order is expensive."
+  ),
+  createQuestion(
+    "Concurrency",
+    "What is the difference between concurrency and parallelism?",
+    "Beginner",
+    "Common",
+    "Tasks making progress versus tasks running at the same time.",
+    "Concurrency means multiple tasks can make progress during the same period. Parallelism means multiple tasks actually run at the same time on different processing resources."
+  ),
+  createQuestion(
+    "Concurrency",
+    "Why is implementing Runnable often preferred to extending Thread?",
+    "Beginner",
+    "Common",
+    "It separates the job from the thread object.",
+    "Implementing Runnable is often preferred because it separates the task from the thread mechanism and avoids using up the class's single inheritance slot."
+  ),
+  createQuestion(
+    "Concurrency",
+    "Why does volatile not make compound operations thread-safe?",
+    "Intermediate",
+    "Common",
+    "Visibility is not the same as atomicity.",
+    "volatile guarantees visibility of individual reads and writes, but compound operations like increment involve multiple steps and can still race."
+  ),
+  createQuestion(
+    "Concurrency",
+    "What is the difference between volatile and synchronized?",
+    "Intermediate",
+    "Common",
+    "One mainly gives visibility, the other also gives mutual exclusion.",
+    "volatile mainly guarantees visibility of variable updates across threads. synchronized provides both visibility and mutual exclusion around a protected block or method."
+  ),
+  createQuestion(
+    "Concurrency",
+    "What happens if ExecutorService is never shut down?",
+    "Intermediate",
+    "Common",
+    "Worker threads may keep resources alive.",
+    "If ExecutorService is never shut down, its threads may keep running or stay alive, which can waste resources and stop an application from ending cleanly."
+  ),
+  createQuestion(
+    "Concurrency",
+    "What is the difference between shutdown() and shutdownNow() on ExecutorService?",
+    "Intermediate",
+    "Common",
+    "Graceful stop versus attempted immediate interruption.",
+    "shutdown() stops accepting new tasks and lets submitted tasks finish. shutdownNow() tries to stop active tasks quickly, usually by interrupting worker threads."
+  ),
+  createQuestion(
+    "Concurrency",
+    "What is thread safety in Java?",
+    "Beginner",
+    "Common",
+    "Correct behavior under concurrent access.",
+    "Thread safety means code behaves correctly when multiple threads use it at the same time without corrupting shared state."
+  ),
+  createQuestion(
+    "Concurrency",
+    "What is an atomic class in java.util.concurrent.atomic?",
+    "Intermediate",
+    "Occasional",
+    "Think lock-free updates for single values.",
+    "An atomic class provides thread-safe operations on a single value using atomic CPU-level style operations instead of traditional locks."
+  ),
+  createQuestion(
+    "Concurrency",
+    "When would AtomicInteger be preferred over synchronized increment logic?",
+    "Intermediate",
+    "Occasional",
+    "Simple shared counters are a common case.",
+    "AtomicInteger is often preferred for simple shared counters because it provides efficient atomic updates without the overhead of a synchronized block around a plain int."
+  ),
+  createQuestion(
+    "Concurrency",
+    "What is the interruption mechanism in Java threads?",
+    "Intermediate",
+    "Common",
+    "A cooperative cancellation signal.",
+    "Interruption is a cooperative way to ask a thread to stop what it is doing. One thread sets the interrupted status of another, and the target thread is expected to check and respond."
+  ),
+  createQuestion(
+    "Concurrency",
+    "What is InterruptedException?",
+    "Intermediate",
+    "Common",
+    "Blocking methods use it to report interruption.",
+    "InterruptedException is thrown when a thread is interrupted while waiting, sleeping, or otherwise blocked in an interruptible operation."
+  ),
+  createQuestion(
+    "Memory & Runtime",
+    "Why does Java still need garbage collection if objects go out of scope?",
+    "Intermediate",
+    "Common",
+    "Scope rules alone do not reclaim shared heap memory safely.",
+    "Java still needs garbage collection because heap objects can outlive a method scope and may be shared by many references. The JVM must determine when they are truly unreachable."
+  ),
+  createQuestion(
+    "Memory & Runtime",
+    "Why can garbage collection not prevent all memory problems?",
+    "Intermediate",
+    "Common",
+    "Reachable but useless objects are the catch.",
+    "Garbage collection reclaims unreachable objects, but it cannot help if code keeps references to objects that are no longer useful. That is how Java programs can still leak memory."
+  ),
+  createQuestion(
+    "I/O & Files",
+    "What is deserialization in Java?",
+    "Beginner",
+    "Common",
+    "It is the reverse of serialization.",
+    "Deserialization is the process of reconstructing an object from a serialized byte stream."
+  ),
+  createQuestion(
+    "I/O & Files",
+    "Why can serialization be risky or undesirable in some designs?",
+    "Advanced",
+    "Occasional",
+    "Think versioning, security, and hidden coupling.",
+    "Serialization can be risky because it creates versioning problems, can expose security concerns, and may tightly couple stored data to internal class structure."
+  ),
+  createQuestion(
+    "Exceptions",
+    "Why are custom exceptions useful in application code?",
+    "Intermediate",
+    "Common",
+    "They make error meaning more specific.",
+    "Custom exceptions are useful because they let code describe domain-specific failures clearly instead of throwing only generic exception types."
+  ),
+  createQuestion(
+    "Arrays & Collections",
+    "What is FIFO behavior in a queue?",
+    "Beginner",
+    "Common",
+    "First in, first out.",
+    "FIFO means the first element added to the queue is the first one removed."
+  ),
+  createQuestion(
+    "Arrays & Collections",
+    "When is a deque more useful than a queue?",
+    "Intermediate",
+    "Occasional",
+    "You need both ends of the structure.",
+    "A deque is more useful when elements need to be added or removed from both the front and the back, such as in stack-like and queue-like use cases."
+  ),
+  createQuestion(
+    "Arrays & Collections",
+    "Why are fail-fast iterators useful?",
+    "Intermediate",
+    "Common",
+    "They help surface unsafe modification early.",
+    "Fail-fast iterators are useful because they quickly reveal unsafe structural modification during iteration instead of silently producing unpredictable behavior."
+  ),
+  createQuestion(
+    "Arrays & Collections",
+    "Why is an unmodifiable collection not always truly immutable?",
+    "Intermediate",
+    "Common",
+    "The wrapped backing collection may still change.",
+    "An unmodifiable collection is not always truly immutable because it may be only a read-only view over another collection that can still change elsewhere."
+  ),
+  createQuestion(
+    "Modern Java",
+    "What is the benefit of records for immutable data modeling?",
+    "Intermediate",
+    "Occasional",
+    "Less boilerplate for value-like types.",
+    "Records reduce boilerplate for immutable data carriers by automatically providing accessors and common methods such as equals(), hashCode(), and toString()."
+  ),
+  createQuestion(
+    "Modern Java",
+    "What makes java.time types easier to reason about than older date APIs?",
+    "Intermediate",
+    "Occasional",
+    "Immutability and clearer domain types matter most.",
+    "java.time types are easier to reason about because they are immutable, use clearer domain-specific types, and avoid much of the confusing mutability of older date APIs."
   )
 ];
