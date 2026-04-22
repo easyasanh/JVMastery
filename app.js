@@ -1,614 +1,718 @@
-const STORAGE_KEY = "jvmastry-progress-v4";
+const STORAGE_KEY = "fund-and-games-save-v1";
+const SAVE_INTERVAL_MS = 5000;
+const upgradeMilestones = [
+  { count: 10, bonus: 0.5, label: "+50% output" },
+  { count: 25, bonus: 1, label: "+100% output" },
+  { count: 50, bonus: 2, label: "+200% output" },
+  { count: 100, bonus: 4, label: "+400% output" },
+  { count: 250, bonus: 8, label: "+800% output" }
+];
 
-const questions = (window.questionsBank ?? []).map(enrichQuestion);
-const state = {
-  currentQuestionId: null,
-  filteredQuestions: [...questions],
-  selectedDifficulty: "all",
-  selectedLikelihood: "all",
-  selectedTopic: "all",
-  hintVisible: false,
-  answerVisible: false,
-  progress: loadProgress()
+const stages = [
+  { name: "Retail Account", threshold: 0, copy: "Spare cash, free charts, dangerous confidence." },
+  { name: "Side Portfolio", threshold: 2500, copy: "A watchlist, a thesis, and fewer panic sells." },
+  { name: "Investment Club", threshold: 25000, copy: "Friends pool capital and pretend the pizza is due diligence." },
+  { name: "Micro Fund", threshold: 175000, copy: "Outside money arrives. So do spreadsheets with tabs named final_final." },
+  { name: "Boutique Fund", threshold: 1250000, copy: "A real office, real clients, and a printer that knows fear." },
+  { name: "Hedge Fund", threshold: 9000000, copy: "Prime brokers, leverage limits, and opinions on rates." },
+  { name: "Multi-Strategy Firm", threshold: 60000000, copy: "Equities, credit, macro, quant, and one desk nobody understands." },
+  { name: "Institutional Manager", threshold: 350000000, copy: "Pensions, endowments, consultants, committees." },
+  { name: "Private Markets Giant", threshold: 1800000000, copy: "Infrastructure, venture, real assets, locked-up capital." },
+  { name: "Capital Engine", threshold: 10000000000, copy: "Your allocation meetings affect weather patterns in the economy." }
+];
+
+const upgrades = [
+  {
+    id: "hunch",
+    category: "research",
+    name: "Lucky Hunch",
+    copy: "A sharper instinct for finding tiny pricing mistakes.",
+    baseCost: 15,
+    growth: 1.18,
+    click: 1.6,
+    data: 0.02
+  },
+  {
+    id: "spreadsheet",
+    category: "research",
+    name: "Spreadsheet Model",
+    copy: "Tabs, formulas, and a suspicious amount of conditional formatting.",
+    baseCost: 90,
+    growth: 1.22,
+    click: 7,
+    income: 0.35,
+    data: 0.08
+  },
+  {
+    id: "terminal",
+    category: "research",
+    name: "Market Terminal",
+    copy: "Faster quotes and fewer decisions made from comment sections.",
+    baseCost: 850,
+    growth: 1.25,
+    click: 40,
+    income: 4,
+    data: 0.25
+  },
+  {
+    id: "altdata",
+    category: "research",
+    name: "Alternative Data",
+    copy: "Satellite lots, app rankings, shipment traces, and noisy edge.",
+    baseCost: 12000,
+    growth: 1.28,
+    click: 210,
+    income: 55,
+    data: 1.2,
+    reputation: 0.05
+  },
+  {
+    id: "intern",
+    category: "people",
+    name: "Part-Time Analyst",
+    copy: "Someone to clean datasets and ask the useful naive question.",
+    baseCost: 140,
+    growth: 1.2,
+    income: 1.2,
+    reputation: 0.02
+  },
+  {
+    id: "analyst",
+    category: "people",
+    name: "Sector Analyst",
+    copy: "Coverage lists, model updates, and better coffee consumption.",
+    baseCost: 1600,
+    growth: 1.23,
+    income: 11,
+    click: 28,
+    reputation: 0.08
+  },
+  {
+    id: "pm",
+    category: "people",
+    name: "Portfolio Manager",
+    copy: "Turns research into positions without turning sleep into myth.",
+    baseCost: 28000,
+    growth: 1.26,
+    income: 165,
+    reputation: 0.32,
+    risk: 0.04
+  },
+  {
+    id: "risk",
+    category: "people",
+    name: "Risk Officer",
+    copy: "Prevents one exciting chart from becoming the whole business.",
+    baseCost: 220000,
+    growth: 1.3,
+    income: 900,
+    reputation: 0.9,
+    risk: -0.35
+  },
+  {
+    id: "momentum",
+    category: "strategy",
+    name: "Momentum Book",
+    copy: "Ride winners, cut losers, repeat before everyone names it.",
+    baseCost: 550,
+    growth: 1.24,
+    income: 5.5,
+    risk: 0.18
+  },
+  {
+    id: "longshort",
+    category: "strategy",
+    name: "Long / Short Desk",
+    copy: "Own the loved names, short the overcaffeinated stories.",
+    baseCost: 7200,
+    growth: 1.27,
+    income: 48,
+    click: 95,
+    risk: 0.22,
+    reputation: 0.1
+  },
+  {
+    id: "quant",
+    category: "strategy",
+    name: "Quant Signals",
+    copy: "Models that whisper, backtests that brag, servers that bill.",
+    baseCost: 95000,
+    growth: 1.29,
+    income: 720,
+    data: 2.3,
+    risk: 0.28
+  },
+  {
+    id: "private",
+    category: "strategy",
+    name: "Private Deals",
+    copy: "Longer lockups, bigger checks, thicker documents.",
+    baseCost: 1100000,
+    growth: 1.32,
+    income: 5200,
+    reputation: 1.8,
+    risk: 0.12
+  }
+];
+
+const defaultState = {
+  capital: 0,
+  lifetimeCapital: 0,
+  legacy: 0,
+  selectedCategory: "research",
+  buyMode: "one",
+  owned: Object.fromEntries(upgrades.map((upgrade) => [upgrade.id, 0])),
+  lastSavedAt: Date.now()
 };
+
+let state = loadState();
+let lastTick = Date.now();
+let chartPoints = [130, 128, 122, 126, 118, 110, 103, 96, 88, 79];
+let toastTimer;
 
 const elements = {
-  questionCount: document.querySelector("#question-count"),
-  attemptedCount: document.querySelector("#attempted-count"),
-  averageScore: document.querySelector("#average-score"),
-  difficultyPills: document.querySelector("#difficulty-pills"),
-  likelihoodPills: document.querySelector("#likelihood-pills"),
-  topicMap: document.querySelector("#topic-map"),
-  masterySummary: document.querySelector("#mastery-summary"),
-  clearTopicButton: document.querySelector("#clear-topic-button"),
-  questionTopic: document.querySelector("#question-topic"),
-  questionDifficulty: document.querySelector("#question-difficulty"),
-  questionLikelihood: document.querySelector("#question-likelihood"),
-  questionPrompt: document.querySelector("#question-prompt"),
-  hintBox: document.querySelector("#question-hint"),
-  hintText: document.querySelector("#question-hint-text"),
-  answerBox: document.querySelector("#question-answer"),
-  answerText: document.querySelector("#question-answer-text"),
-  markSchemeList: document.querySelector("#question-mark-scheme"),
-  scoreState: document.querySelector("#score-state"),
-  scoreButtons: document.querySelector("#score-buttons"),
-  hintButton: document.querySelector("#hint-button"),
-  revealButton: document.querySelector("#reveal-button"),
-  nextButton: document.querySelector("#next-button"),
-  randomQuestionButton: document.querySelector("#random-question-button"),
-  shuffleFilteredButton: document.querySelector("#shuffle-filtered-button"),
-  attemptedPercent: document.querySelector("#attempted-percent"),
-  scorePercent: document.querySelector("#score-percent"),
-  attemptedBar: document.querySelector("#attempted-bar"),
-  scoreBar: document.querySelector("#score-bar"),
-  deckSummary: document.querySelector("#deck-summary"),
-  questionList: document.querySelector("#question-list"),
-  resetProgressButton: document.querySelector("#reset-progress-button")
+  capital: document.querySelector("#capital-value"),
+  income: document.querySelector("#income-value"),
+  click: document.querySelector("#click-value"),
+  aum: document.querySelector("#aum-value"),
+  reputation: document.querySelector("#reputation-value"),
+  data: document.querySelector("#data-value"),
+  risk: document.querySelector("#risk-value"),
+  stageName: document.querySelector("#stage-name"),
+  stageProgressLabel: document.querySelector("#stage-progress-label"),
+  stageProgressPercent: document.querySelector("#stage-progress-percent"),
+  stageProgressBar: document.querySelector("#stage-progress-bar"),
+  nextStageCopy: document.querySelector("#next-stage-copy"),
+  upgradeList: document.querySelector("#upgrade-list"),
+  stageList: document.querySelector("#stage-list"),
+  legacy: document.querySelector("#legacy-value"),
+  prestigeButton: document.querySelector("#prestige-button"),
+  researchButton: document.querySelector("#research-button"),
+  researchSubtitle: document.querySelector("#research-button-subtitle"),
+  saveButton: document.querySelector("#save-button"),
+  resetButton: document.querySelector("#reset-button"),
+  toast: document.querySelector("#toast"),
+  chartLine: document.querySelector("#chart-line"),
+  chartArea: document.querySelector("#chart-area"),
+  chartDots: document.querySelector("#chart-dots"),
+  terminalStatus: document.querySelector("#terminal-status")
 };
 
-function enrichQuestion(question) {
-  const markScheme = buildMarkScheme(question);
-  return {
-    ...question,
-    markScheme,
-    totalMarks: markScheme.length
+document.querySelectorAll(".tab").forEach((tab) => {
+  tab.addEventListener("click", () => {
+    state.selectedCategory = tab.dataset.category;
+    render();
+  });
+});
+
+document.querySelectorAll(".buy-mode").forEach((button) => {
+  button.addEventListener("click", () => {
+    state.buyMode = button.dataset.buyMode;
+    render();
+  });
+});
+
+elements.researchButton.addEventListener("click", () => {
+  const gain = getClickValue();
+  addCapital(gain);
+  elements.researchSubtitle.textContent = `+$${formatNumber(gain)} capital`;
+  pulseChart();
+  render();
+});
+
+elements.saveButton.addEventListener("click", () => {
+  saveState();
+  showToast("Game saved.");
+});
+
+elements.resetButton.addEventListener("click", () => {
+  if (!confirm("Reset your Fund and Games save?")) {
+    return;
+  }
+
+  state = structuredClone(defaultState);
+  state.lastSavedAt = Date.now();
+  saveState();
+  render();
+  showToast("Save reset.");
+});
+
+elements.prestigeButton.addEventListener("click", () => {
+  if (!canPrestige()) {
+    return;
+  }
+
+  const bonus = getPrestigeGain();
+  state = {
+    ...structuredClone(defaultState),
+    legacy: state.legacy + bonus,
+    lastSavedAt: Date.now()
   };
+  saveState();
+  render();
+  showToast(`Fund closed. Track Record increased by ${bonus.toFixed(2)}x.`);
+});
+
+window.addEventListener("beforeunload", saveState);
+
+setInterval(() => {
+  saveState();
+}, SAVE_INTERVAL_MS);
+
+applyOfflineProgress();
+render();
+setInterval(gameLoop, 250);
+
+function gameLoop() {
+  const now = Date.now();
+  const elapsedSeconds = Math.min((now - lastTick) / 1000, 5);
+  lastTick = now;
+  addCapital(getIncomePerSecond() * elapsedSeconds);
+
+  if (Math.random() < 0.02) {
+    pulseChart();
+  }
+
+  render();
 }
 
-function buildMarkScheme(question) {
-  if (Array.isArray(question.markScheme) && question.markScheme.length > 0) {
-    return question.markScheme;
+function loadState() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
+    if (!saved) {
+      return structuredClone(defaultState);
+    }
+
+    return {
+      ...structuredClone(defaultState),
+      ...saved,
+      owned: { ...defaultState.owned, ...(saved.owned ?? {}) }
+    };
+  } catch {
+    return structuredClone(defaultState);
+  }
+}
+
+function saveState() {
+  state.lastSavedAt = Date.now();
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+function applyOfflineProgress() {
+  const elapsedSeconds = Math.max(0, Math.min((Date.now() - state.lastSavedAt) / 1000, 60 * 60 * 8));
+  const gain = getIncomePerSecond() * elapsedSeconds;
+  if (gain > 0) {
+    addCapital(gain);
+    showToast(`Welcome back. Offline returns added $${formatNumber(gain)}.`);
+  }
+}
+
+function addCapital(amount) {
+  if (!Number.isFinite(amount) || amount <= 0) {
+    return;
   }
 
-  const normalizedAnswer = question.answer.replace(/\s+/g, " ").trim();
-  let parts = normalizedAnswer
-    .split(/(?<=[.!?])\s+/)
-    .map((part) => part.trim())
-    .filter(Boolean);
+  state.capital += amount;
+  state.lifetimeCapital += amount;
+}
 
-  if (parts.length === 1) {
-    parts = normalizedAnswer
-      .split(/,\s+/)
-      .map((part) => part.trim())
-      .filter((part) => part.length > 10);
+function getMultiplier() {
+  return 1 + state.legacy;
+}
+
+function getClickValue() {
+  const raw = upgrades.reduce((sum, upgrade) => {
+    const owned = getOwned(upgrade.id);
+    return sum + (upgrade.click ?? 0) * owned * getUpgradeMilestoneMultiplier(owned);
+  }, 2);
+  return raw * getMultiplier();
+}
+
+function getIncomePerSecond() {
+  const raw = upgrades.reduce((sum, upgrade) => {
+    const owned = getOwned(upgrade.id);
+    return sum + (upgrade.income ?? 0) * owned * getUpgradeMilestoneMultiplier(owned);
+  }, 0);
+  return raw * getMultiplier();
+}
+
+function getReputation() {
+  return upgrades.reduce((sum, upgrade) => {
+    const owned = getOwned(upgrade.id);
+    return sum + (upgrade.reputation ?? 0) * owned * getUpgradeMilestoneMultiplier(owned);
+  }, 0);
+}
+
+function getData() {
+  return upgrades.reduce((sum, upgrade) => {
+    const owned = getOwned(upgrade.id);
+    return sum + (upgrade.data ?? 0) * owned * getUpgradeMilestoneMultiplier(owned);
+  }, 0);
+}
+
+function getRisk() {
+  const risk = upgrades.reduce((sum, upgrade) => {
+    const owned = getOwned(upgrade.id);
+    return sum + (upgrade.risk ?? 0) * owned * getUpgradeMilestoneMultiplier(owned);
+  }, 0);
+  return Math.max(0, Math.min(98, risk * 10));
+}
+
+function getOwned(upgradeId) {
+  return state.owned[upgradeId] ?? 0;
+}
+
+function getUpgradeCost(upgrade) {
+  return Math.ceil(upgrade.baseCost * upgrade.growth ** getOwned(upgrade.id));
+}
+
+function getUpgradeCostAtCount(upgrade, owned) {
+  return Math.ceil(upgrade.baseCost * upgrade.growth ** owned);
+}
+
+function getUpgradeMilestoneMultiplier(owned) {
+  return upgradeMilestones.reduce((multiplier, milestone) => {
+    return owned >= milestone.count ? multiplier + milestone.bonus : multiplier;
+  }, 1);
+}
+
+function getNextMilestone(owned) {
+  return upgradeMilestones.find((milestone) => owned < milestone.count) ?? null;
+}
+
+function getMilestoneAtCount(owned) {
+  return upgradeMilestones.find((milestone) => owned === milestone.count) ?? null;
+}
+
+function getUpgradeEffectValue(upgrade, key, owned) {
+  const base = upgrade[key] ?? 0;
+  const milestoneValue = base * owned * getUpgradeMilestoneMultiplier(owned);
+
+  if (key === "click" || key === "income") {
+    return milestoneValue * getMultiplier();
   }
 
-  const condensed = [];
-  for (const part of parts) {
-    if (condensed.length === 4) {
+  if (key === "risk") {
+    return milestoneValue * 10;
+  }
+
+  return milestoneValue;
+}
+
+function getUpgradeEffects(upgrade, owned) {
+  const effectTypes = [
+    { key: "click", label: "Research / click", prefix: "$" },
+    { key: "income", label: "Returns / sec", prefix: "$" },
+    { key: "reputation", label: "Reputation", prefix: "" },
+    { key: "data", label: "Data", prefix: "" },
+    { key: "risk", label: "Risk", prefix: "", suffix: " pts" }
+  ];
+
+  return effectTypes
+    .filter((effect) => upgrade[effect.key])
+    .map((effect) => {
+      const current = getUpgradeEffectValue(upgrade, effect.key, owned);
+      const next = getUpgradeEffectValue(upgrade, effect.key, owned + 1) - current;
+      return {
+        ...effect,
+        current,
+        next
+      };
+    });
+}
+
+function formatSignedEffect(value, effect) {
+  const sign = value >= 0 ? "+" : "-";
+  const absoluteValue = Math.abs(value);
+  return `${sign}${effect.prefix}${formatNumber(absoluteValue)}${effect.suffix ?? ""}`;
+}
+
+function getBulkPurchase(upgrade) {
+  const startingOwned = getOwned(upgrade.id);
+  const targetMilestone = getNextMilestone(startingOwned);
+
+  if (state.buyMode === "one") {
+    const totalCost = getUpgradeCostAtCount(upgrade, startingOwned);
+    return {
+      quantity: state.capital >= totalCost ? 1 : 0,
+      totalCost,
+      targetOwned: startingOwned + 1,
+      mode: "one"
+    };
+  }
+
+  if (state.buyMode === "milestone" && targetMilestone) {
+    let totalCost = 0;
+    for (let owned = startingOwned; owned < targetMilestone.count; owned += 1) {
+      totalCost += getUpgradeCostAtCount(upgrade, owned);
+    }
+
+    const canAfford = state.capital >= totalCost;
+    return {
+      quantity: canAfford ? targetMilestone.count - startingOwned : 0,
+      totalCost,
+      targetOwned: targetMilestone.count,
+      mode: "milestone",
+      canAfford
+    };
+  }
+
+  if (state.buyMode === "milestone") {
+    return {
+      quantity: 0,
+      totalCost: 0,
+      targetOwned: startingOwned,
+      mode: "milestone",
+      canAfford: false,
+      complete: true
+    };
+  }
+
+  let quantity = 0;
+  let totalCost = 0;
+  let owned = startingOwned;
+
+  while (quantity < 5000) {
+    const cost = getUpgradeCostAtCount(upgrade, owned);
+    if (totalCost + cost > state.capital) {
       break;
     }
 
-    let text = part.replace(/[.]+$/g, "").trim();
-    if (text.length < 12) {
-      continue;
-    }
-    text = text.charAt(0).toUpperCase() + text.slice(1);
-    condensed.push(text);
+    totalCost += cost;
+    owned += 1;
+    quantity += 1;
   }
 
-  if (condensed.length === 0) {
-    condensed.push(normalizedAnswer);
-  }
-
-  if (condensed.length === 1 && condensed[0].includes(" and ")) {
-    return condensed[0]
-      .split(/\s+and\s+/)
-      .map((part) => part.trim())
-      .filter((part) => part.length > 8)
-      .slice(0, 4);
-  }
-
-  return condensed.slice(0, 4);
-}
-
-function loadProgress() {
-  try {
-    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY)) ?? {};
-    return Object.fromEntries(
-      Object.entries(saved).map(([questionId, value]) => [questionId, normalizeProgressEntry(value)])
-    );
-  } catch {
-    return {};
-  }
-}
-
-function normalizeProgressEntry(value) {
-  if (!value) {
-    return null;
-  }
-
-  if (typeof value === "string") {
-    if (value === "mastered") {
-      return { earnedMarks: 2, totalMarks: 2 };
-    }
-
-    if (value === "reviewed") {
-      return { earnedMarks: 1, totalMarks: 2 };
-    }
-
-    return null;
-  }
-
-  const earnedMarks = Number.isFinite(value.earnedMarks) ? value.earnedMarks : 0;
-  const totalMarks = Number.isFinite(value.totalMarks) && value.totalMarks > 0 ? value.totalMarks : 1;
+  const nextCost = getUpgradeCostAtCount(upgrade, startingOwned);
   return {
-    earnedMarks: Math.max(0, Math.min(earnedMarks, totalMarks)),
-    totalMarks
+    quantity,
+    totalCost: quantity > 0 ? totalCost : nextCost,
+    targetOwned: quantity > 0 ? startingOwned + quantity : startingOwned + 1,
+    mode: "max"
   };
 }
 
-function saveProgress() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(state.progress));
-}
-
-function getQuestionProgress(questionId) {
-  return state.progress[questionId] ?? null;
-}
-
-function isAttempted(questionId) {
-  return Boolean(getQuestionProgress(questionId));
-}
-
-function getQuestionScore(question) {
-  const progress = getQuestionProgress(question.id);
-  if (!progress) {
-    return null;
-  }
-
-  const totalMarks = question.totalMarks || progress.totalMarks || 1;
-  return {
-    earnedMarks: Math.max(0, Math.min(progress.earnedMarks, totalMarks)),
-    totalMarks
-  };
-}
-
-function updateQuestionScore(questionId, earnedMarks) {
-  const question = questions.find((item) => item.id === questionId);
-  if (!question) {
+function buyUpgrade(upgradeId) {
+  const upgrade = upgrades.find((item) => item.id === upgradeId);
+  if (!upgrade) {
     return;
   }
 
-  state.progress[questionId] = {
-    earnedMarks,
-    totalMarks: question.totalMarks
-  };
-  saveProgress();
-  updateProgressUI();
-  renderTopicMap();
-  renderCurrentQuestion();
-  renderQuestionList();
+  const purchase = getBulkPurchase(upgrade);
+  if (purchase.quantity < 1 || state.capital < purchase.totalCost) {
+    return;
+  }
+
+  const previousOwned = state.owned[upgrade.id];
+  state.capital -= purchase.totalCost;
+  state.owned[upgrade.id] += purchase.quantity;
+  const reachedMilestones = upgradeMilestones.filter((milestone) => {
+    return previousOwned < milestone.count && state.owned[upgrade.id] >= milestone.count;
+  });
+  saveState();
+  render();
+  if (reachedMilestones.length > 0) {
+    const latestMilestone = reachedMilestones.at(-1);
+    showToast(`${upgrade.name} reached ${latestMilestone.count}. ${latestMilestone.label} unlocked.`);
+  }
 }
 
-function setCurrentQuestion(questionId) {
-  state.currentQuestionId = questionId;
-  state.hintVisible = false;
-  state.answerVisible = false;
-  renderCurrentQuestion();
+function getCurrentStageIndex() {
+  let index = 0;
+  stages.forEach((stage, stageIndex) => {
+    if (state.lifetimeCapital >= stage.threshold) {
+      index = stageIndex;
+    }
+  });
+  return index;
 }
 
-function getTopicStats() {
-  const topics = [...new Set(questions.map((question) => question.topic))];
-
-  return topics
-    .map((topic) => {
-      const topicQuestions = questions.filter((question) => question.topic === topic);
-      const attemptedQuestions = topicQuestions.filter((question) => isAttempted(question.id));
-      const earnedMarks = topicQuestions.reduce((sum, question) => {
-        const score = getQuestionScore(question);
-        return sum + (score ? score.earnedMarks : 0);
-      }, 0);
-      const possibleMarks = topicQuestions.reduce((sum, question) => sum + question.totalMarks, 0);
-      const attemptedPossibleMarks = attemptedQuestions.reduce(
-        (sum, question) => sum + question.totalMarks,
-        0
-      );
-      const attempted = attemptedQuestions.length;
-      const perfect = attemptedQuestions.filter((question) => {
-        const score = getQuestionScore(question);
-        return score && score.earnedMarks === score.totalMarks;
-      }).length;
-      const total = topicQuestions.length;
-      const coverage = Math.round((attempted / total) * 100);
-      const mastery = attemptedPossibleMarks
-        ? Math.round((earnedMarks / attemptedPossibleMarks) * 100)
-        : 0;
-      const score = Math.round((earnedMarks / possibleMarks) * 100);
-
-      let label = "Weak Spot";
-      if (attempted === 0) {
-        label = "Untouched";
-      } else if (mastery >= 75 && coverage >= 35) {
-        label = "Strong";
-      } else if (mastery >= 45 || coverage >= 20) {
-        label = "Building";
-      }
-
-      return {
-        topic,
-        total,
-        attempted,
-        perfect,
-        coverage,
-        mastery,
-        score,
-        label
-      };
-    })
-    .sort((left, right) => {
-      if (left.score !== right.score) {
-        return left.score - right.score;
-      }
-
-      return left.topic.localeCompare(right.topic);
-    });
+function canPrestige() {
+  return state.lifetimeCapital >= 10000000000;
 }
 
-function renderTopicMap() {
-  const topicStats = getTopicStats();
-  elements.topicMap.innerHTML = "";
+function getPrestigeGain() {
+  if (!canPrestige()) {
+    return 0;
+  }
+  return Math.max(0.15, Math.log10(state.lifetimeCapital / 1000000000) / 8);
+}
 
-  const focusedTopic =
-    state.selectedTopic === "all" ? null : topicStats.find((item) => item.topic === state.selectedTopic);
-  const strongest = [...topicStats]
-    .sort((left, right) => right.score - left.score)
-    .slice(0, 2)
-    .map((item) => item.topic);
-  const weakest = topicStats.slice(0, 2).map((item) => item.topic);
+function render() {
+  const income = getIncomePerSecond();
+  const click = getClickValue();
+  const stageIndex = getCurrentStageIndex();
+  const stage = stages[stageIndex];
+  const nextStage = stages[stageIndex + 1];
 
-  const summaryParts = [];
-  if (focusedTopic) {
-    summaryParts.push(
-      `Focused topic: ${focusedTopic.topic} (${focusedTopic.attempted}/${focusedTopic.total} attempted, ${focusedTopic.mastery}% average score).`
-    );
+  elements.capital.textContent = `$${formatNumber(state.capital)}`;
+  elements.income.textContent = `$${formatNumber(income)}`;
+  elements.click.textContent = `$${formatNumber(click)}`;
+  elements.aum.textContent = `$${formatNumber(state.lifetimeCapital)}`;
+  elements.reputation.textContent = formatNumber(getReputation());
+  elements.data.textContent = formatNumber(getData());
+  elements.risk.textContent = `${Math.round(getRisk())}%`;
+  elements.stageName.textContent = stage.name;
+  elements.stageProgressLabel.textContent = `Layer ${stageIndex + 1} / ${stages.length}`;
+  elements.legacy.textContent = `${getMultiplier().toFixed(2)}x`;
+  elements.prestigeButton.disabled = !canPrestige();
+  elements.terminalStatus.textContent = stage.copy;
+
+  if (nextStage) {
+    const previousThreshold = stage.threshold;
+    const range = nextStage.threshold - previousThreshold;
+    const progress = Math.max(0, Math.min(1, (state.lifetimeCapital - previousThreshold) / range));
+    elements.nextStageCopy.textContent = `Raise $${formatNumber(nextStage.threshold)} lifetime capital to reach ${nextStage.name}`;
+    elements.stageProgressPercent.textContent = `${Math.round(progress * 100)}%`;
+    elements.stageProgressBar.style.width = `${progress * 100}%`;
   } else {
-    summaryParts.push("Focused topic: all topics.");
-  }
-  if (weakest.length > 0) {
-    summaryParts.push(`Weak spots: ${weakest.join(" · ")}.`);
-  }
-  if (strongest.length > 0) {
-    summaryParts.push(`Strongest: ${strongest.join(" · ")}.`);
-  }
-  elements.masterySummary.textContent = summaryParts.join(" ");
-  elements.clearTopicButton.disabled = state.selectedTopic === "all";
-
-  topicStats.forEach((stat) => {
-    const button = document.createElement("button");
-    button.type = "button";
-    button.className = `topic-card ${
-      state.selectedTopic === stat.topic ? "topic-card--active" : ""
-    } ${stat.label === "Strong" ? "topic-card--strong" : ""}`.trim();
-    button.addEventListener("click", () => {
-      state.selectedTopic = state.selectedTopic === stat.topic ? "all" : stat.topic;
-      renderTopicMap();
-      applyFilters();
-    });
-
-    const heading = document.createElement("div");
-    heading.className = "topic-card__heading";
-
-    const title = document.createElement("h3");
-    title.textContent = stat.topic;
-
-    const badge = document.createElement("span");
-    badge.className = `pill topic-card__badge ${
-      stat.label === "Strong" ? "topic-card__badge--strong" : ""
-    }`.trim();
-    badge.textContent = stat.label;
-
-    heading.append(title, badge);
-
-    const meta = document.createElement("p");
-    meta.className = "topic-card__meta";
-    meta.textContent = `${stat.total} questions · ${stat.attempted} attempted · ${stat.perfect} full marks`;
-
-    const bars = document.createElement("div");
-    bars.className = "topic-card__bars";
-    bars.innerHTML = `
-      <div>
-        <div class="progress-label">
-          <span>Coverage</span>
-          <span>${stat.coverage}%</span>
-        </div>
-        <div class="progress-track"><div class="progress-fill" style="width: ${stat.coverage}%"></div></div>
-      </div>
-      <div>
-        <div class="progress-label">
-          <span>Average score</span>
-          <span>${stat.mastery}%</span>
-        </div>
-        <div class="progress-track"><div class="progress-fill progress-fill--accent" style="width: ${stat.mastery}%"></div></div>
-      </div>
-    `;
-
-    const footer = document.createElement("div");
-    footer.className = "topic-card__footer";
-    footer.textContent =
-      state.selectedTopic === stat.topic ? "Currently focused" : "Click to focus this topic";
-
-    button.append(heading, meta, bars, footer);
-    elements.topicMap.append(button);
-  });
-}
-
-function renderFilterPills(container, options, selected, variantClass, onSelect) {
-  container.innerHTML = "";
-  options.forEach((option) => {
-    const pill = document.createElement("button");
-    pill.type = "button";
-    pill.className = `pill ${variantClass} ${selected === option ? "pill--active" : ""}`.trim();
-    pill.textContent = option === "all" ? "All" : option;
-    pill.addEventListener("click", () => onSelect(option));
-    container.append(pill);
-  });
-}
-
-function renderDifficultyPills() {
-  renderFilterPills(
-    elements.difficultyPills,
-    ["all", "Beginner", "Intermediate", "Advanced"],
-    state.selectedDifficulty,
-    "pill--difficulty",
-    (option) => {
-      state.selectedDifficulty = option;
-      renderDifficultyPills();
-      applyFilters();
-    }
-  );
-}
-
-function renderLikelihoodPills() {
-  renderFilterPills(
-    elements.likelihoodPills,
-    ["all", "Very Common", "Common", "Occasional", "Rare"],
-    state.selectedLikelihood,
-    "pill--likelihood",
-    (option) => {
-      state.selectedLikelihood = option;
-      renderLikelihoodPills();
-      applyFilters();
-    }
-  );
-}
-
-function applyFilters() {
-  const difficulty = state.selectedDifficulty;
-  const likelihood = state.selectedLikelihood;
-  const topic = state.selectedTopic;
-
-  state.filteredQuestions = questions.filter((question) => {
-    const matchesDifficulty = difficulty === "all" || question.difficulty === difficulty;
-    const matchesLikelihood = likelihood === "all" || question.likelihood === likelihood;
-    const matchesTopic = topic === "all" || question.topic === topic;
-
-    return matchesDifficulty && matchesLikelihood && matchesTopic;
-  });
-
-  renderTopicMap();
-  renderDeckSummary();
-  renderQuestionList();
-
-  if (!state.filteredQuestions.some((question) => question.id === state.currentQuestionId)) {
-    pickNextQuestion();
-  }
-}
-
-function renderDeckSummary() {
-  const total = state.filteredQuestions.length;
-  const topicPrefix =
-    state.selectedTopic === "all" ? "All topics." : `Topic focus: ${state.selectedTopic}.`;
-  const difficultySummary = ["Beginner", "Intermediate", "Advanced"]
-    .map(
-      (difficulty) =>
-        `${difficulty}: ${state.filteredQuestions.filter((q) => q.difficulty === difficulty).length}`
-    )
-    .join(" · ");
-  const likelihoodSummary = ["Very Common", "Common", "Occasional", "Rare"]
-    .map(
-      (likelihood) =>
-        `${likelihood}: ${state.filteredQuestions.filter((q) => q.likelihood === likelihood).length}`
-    )
-    .join(" · ");
-
-  elements.deckSummary.textContent =
-    total > 0
-      ? `${topicPrefix} ${total} questions in the current deck. ${difficultySummary}. ${likelihoodSummary}.`
-      : "No questions match the current filters yet.";
-}
-
-function pickNextQuestion() {
-  if (state.filteredQuestions.length === 0) {
-    state.currentQuestionId = null;
-    state.hintVisible = false;
-    state.answerVisible = false;
-    renderCurrentQuestion();
-    return;
+    elements.nextStageCopy.textContent = "All mandates unlocked. Close the fund to build Track Record.";
+    elements.stageProgressPercent.textContent = "100%";
+    elements.stageProgressBar.style.width = "100%";
   }
 
-  const unseenFirst = state.filteredQuestions.filter((question) => !isAttempted(question.id));
-  const source = unseenFirst.length > 0 ? unseenFirst : state.filteredQuestions;
-  setCurrentQuestion(source[Math.floor(Math.random() * source.length)].id);
+  renderTabs();
+  renderUpgrades();
+  renderStages(stageIndex);
+  renderChart();
 }
 
-function renderScoreButtons(question) {
-  elements.scoreButtons.innerHTML = "";
+function renderTabs() {
+  document.querySelectorAll(".tab").forEach((tab) => {
+    tab.classList.toggle("is-active", tab.dataset.category === state.selectedCategory);
+  });
+  document.querySelectorAll(".buy-mode").forEach((button) => {
+    button.classList.toggle("is-active", button.dataset.buyMode === state.buyMode);
+  });
+}
 
-  for (let marks = 0; marks <= question.totalMarks; marks += 1) {
-    const button = document.createElement("button");
-    button.type = "button";
-    button.className = "score-chip";
-    button.textContent = `${marks}/${question.totalMarks}`;
-    button.addEventListener("click", () => updateQuestionScore(question.id, marks));
+function renderUpgrades() {
+  const visibleUpgrades = upgrades.filter((upgrade) => upgrade.category === state.selectedCategory);
+  elements.upgradeList.innerHTML = visibleUpgrades
+    .map((upgrade) => {
+      const owned = getOwned(upgrade.id);
+      const purchase = getBulkPurchase(upgrade);
+      const nextMilestone = getNextMilestone(owned);
+      const multiplier = getUpgradeMilestoneMultiplier(owned);
+      const milestoneProgress = nextMilestone ? Math.min(100, (owned / nextMilestone.count) * 100) : 100;
+      const canBuy = purchase.quantity > 0;
+      const effects = getUpgradeEffects(upgrade, owned);
+      const currentEffects = effects
+        .map((effect) => `<span>${effect.label}: ${formatSignedEffect(effect.current, effect)}</span>`)
+        .join("");
+      const nextEffects = effects
+        .map((effect) => `<span>${effect.label}: ${formatSignedEffect(effect.next, effect)}</span>`)
+        .join("");
+      const buyLabel =
+        purchase.complete
+          ? "Milestones complete"
+          : purchase.mode === "milestone"
+          ? `Buy to ${purchase.targetOwned} $${formatNumber(purchase.totalCost)}`
+          : purchase.quantity > 1
+            ? `Buy ${purchase.quantity} $${formatNumber(purchase.totalCost)}`
+            : `Buy $${formatNumber(purchase.totalCost)}`;
+      return `
+        <article class="upgrade-card">
+          <div class="upgrade-card__top">
+            <div>
+              <h3>${upgrade.name}</h3>
+              <p>${upgrade.copy}</p>
+            </div>
+            <span class="upgrade-card__owned">${owned}</span>
+          </div>
+          <div class="effect-block">
+            <div>
+              <strong>Current</strong>
+              <div class="effect-list">${currentEffects}</div>
+            </div>
+            <div>
+              <strong>Next buy</strong>
+              <div class="effect-list">${nextEffects}</div>
+            </div>
+          </div>
+          <div class="milestone-meter">
+            <div class="milestone-meter__label">
+              <span>${nextMilestone ? `Next milestone: ${nextMilestone.count}` : "All listed milestones reached"}</span>
+              <strong>${multiplier.toFixed(1)}x</strong>
+            </div>
+            <div class="progress-track">
+              <div class="progress-fill" style="width: ${milestoneProgress}%"></div>
+            </div>
+          </div>
+          <button class="buy-button" type="button" data-upgrade="${upgrade.id}" ${canBuy ? "" : "disabled"}>
+            ${buyLabel}
+          </button>
+        </article>
+      `;
+    })
+    .join("");
 
-    const score = getQuestionScore(question);
-    if (score && score.earnedMarks === marks) {
-      button.classList.add("score-chip--active");
-    }
+  elements.upgradeList.querySelectorAll("[data-upgrade]").forEach((button) => {
+    button.addEventListener("click", () => buyUpgrade(button.dataset.upgrade));
+  });
+}
 
-    elements.scoreButtons.append(button);
+function renderStages(currentStageIndex) {
+  elements.stageList.innerHTML = stages
+    .map((stage, index) => {
+      const unlocked = index <= currentStageIndex;
+      const current = index === currentStageIndex;
+      return `
+        <article class="stage-row ${unlocked ? "is-unlocked" : ""} ${current ? "is-current" : ""}">
+          <span class="stage-row__number">${index + 1}</span>
+          <div>
+            <h3>${stage.name}</h3>
+            <p>${stage.copy}</p>
+          </div>
+          <strong>$${formatNumber(stage.threshold)}</strong>
+        </article>
+      `;
+    })
+    .join("");
+}
+
+function pulseChart() {
+  const drift = Math.max(18, 132 - Math.log10(Math.max(10, state.lifetimeCapital + 10)) * 12);
+  const next = Math.max(24, drift + (Math.random() - 0.38) * 28);
+  chartPoints = [...chartPoints.slice(1), next];
+}
+
+function renderChart() {
+  const width = 620;
+  const height = 260;
+  const step = width / (chartPoints.length - 1);
+  const points = chartPoints.map((value, index) => [index * step, value]);
+  const line = points.map(([x, y], index) => `${index === 0 ? "M" : "L"} ${x.toFixed(1)} ${y.toFixed(1)}`).join(" ");
+  const area = `${line} L ${width} ${height} L 0 ${height} Z`;
+
+  elements.chartLine.setAttribute("d", line);
+  elements.chartArea.setAttribute("d", area);
+  elements.chartDots.innerHTML = points
+    .filter((_, index) => index === points.length - 1 || index % 3 === 0)
+    .map(([x, y]) => `<circle class="chart-dot" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="6"></circle>`)
+    .join("");
+}
+
+function formatNumber(value) {
+  if (value < 1000) {
+    return value.toFixed(value < 10 ? 1 : 0);
   }
+
+  const units = [
+    ["T", 1000000000000],
+    ["B", 1000000000],
+    ["M", 1000000],
+    ["K", 1000]
+  ];
+  const unit = units.find(([, amount]) => value >= amount);
+  return `${(value / unit[1]).toFixed(value / unit[1] >= 100 ? 0 : 1)}${unit[0]}`;
 }
 
-function renderMarkScheme(question) {
-  elements.markSchemeList.innerHTML = "";
-  question.markScheme.forEach((point) => {
-    const item = document.createElement("li");
-    item.textContent = point;
-    elements.markSchemeList.append(item);
-  });
+function showToast(message) {
+  elements.toast.textContent = message;
+  elements.toast.classList.add("is-visible");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => {
+    elements.toast.classList.remove("is-visible");
+  }, 2600);
 }
-
-function renderCurrentQuestion() {
-  const question = questions.find((item) => item.id === state.currentQuestionId);
-
-  if (!question) {
-    elements.questionTopic.textContent = "No match";
-    elements.questionDifficulty.textContent = "Update filters";
-    elements.questionLikelihood.textContent = "No question";
-    elements.questionPrompt.textContent = "No question is available for the current selection.";
-    elements.hintText.textContent = "";
-    elements.answerText.textContent = "";
-    elements.markSchemeList.innerHTML = "";
-    elements.scoreState.textContent = "";
-    elements.scoreButtons.innerHTML = "";
-    elements.hintBox.classList.add("answer--hidden");
-    elements.answerBox.classList.add("answer--hidden");
-    return;
-  }
-
-  const score = getQuestionScore(question);
-
-  elements.questionTopic.textContent = question.topic;
-  elements.questionDifficulty.textContent = question.difficulty;
-  elements.questionLikelihood.textContent = question.likelihood;
-  elements.questionPrompt.textContent = question.prompt;
-  elements.hintText.textContent = question.hint;
-  elements.answerText.textContent = question.answer;
-  renderMarkScheme(question);
-  renderScoreButtons(question);
-  elements.scoreState.textContent = score
-    ? `Current score: ${score.earnedMarks}/${score.totalMarks}`
-    : `Score yourself out of ${question.totalMarks} after checking the mark scheme.`;
-  elements.hintBox.classList.toggle("answer--hidden", !state.hintVisible);
-  elements.answerBox.classList.toggle("answer--hidden", !state.answerVisible);
-}
-
-function getQuestionStatusLabel(question) {
-  const score = getQuestionScore(question);
-  if (!score) {
-    return "Unattempted";
-  }
-
-  const percentage = Math.round((score.earnedMarks / score.totalMarks) * 100);
-  return `Score: ${score.earnedMarks}/${score.totalMarks} (${percentage}%)`;
-}
-
-function renderQuestionList() {
-  elements.questionList.innerHTML = "";
-
-  state.filteredQuestions.forEach((question) => {
-    const button = document.createElement("button");
-    button.type = "button";
-    button.className = "question-list__item";
-    button.addEventListener("click", () => {
-      setCurrentQuestion(question.id);
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    });
-
-    const meta = document.createElement("div");
-    meta.className = "question-list__meta";
-
-    const topic = document.createElement("span");
-    topic.className = "pill";
-    topic.textContent = question.topic;
-
-    const difficulty = document.createElement("span");
-    difficulty.className = "pill pill--difficulty";
-    difficulty.textContent = question.difficulty;
-
-    const likelihood = document.createElement("span");
-    likelihood.className = "pill pill--likelihood";
-    likelihood.textContent = question.likelihood;
-
-    meta.append(topic, difficulty, likelihood);
-
-    const title = document.createElement("h3");
-    title.textContent = question.prompt;
-
-    const status = document.createElement("div");
-    status.className = "question-list__status";
-    status.textContent = getQuestionStatusLabel(question);
-
-    button.append(meta, title, status);
-    elements.questionList.append(button);
-  });
-}
-
-function updateProgressUI() {
-  const attempted = questions.filter((question) => isAttempted(question.id));
-  const attemptedCount = attempted.length;
-  const total = questions.length;
-  const earnedMarks = attempted.reduce((sum, question) => {
-    const score = getQuestionScore(question);
-    return sum + (score ? score.earnedMarks : 0);
-  }, 0);
-  const possibleAttemptedMarks = attempted.reduce((sum, question) => sum + question.totalMarks, 0);
-  const attemptedCoverage = total === 0 ? 0 : Math.round((attemptedCount / total) * 100);
-  const averageScore =
-    possibleAttemptedMarks === 0 ? 0 : Math.round((earnedMarks / possibleAttemptedMarks) * 100);
-
-  elements.questionCount.textContent = total.toString();
-  elements.attemptedCount.textContent = attemptedCount.toString();
-  elements.averageScore.textContent = `${averageScore}%`;
-  elements.attemptedPercent.textContent = `${attemptedCoverage}%`;
-  elements.scorePercent.textContent = `${averageScore}%`;
-  elements.attemptedBar.style.width = `${attemptedCoverage}%`;
-  elements.scoreBar.style.width = `${averageScore}%`;
-}
-
-function bindEvents() {
-  elements.hintButton.addEventListener("click", () => {
-    if (state.currentQuestionId) {
-      state.hintVisible = true;
-      elements.hintBox.classList.remove("answer--hidden");
-    }
-  });
-
-  elements.revealButton.addEventListener("click", () => {
-    if (state.currentQuestionId) {
-      state.answerVisible = true;
-      elements.answerBox.classList.remove("answer--hidden");
-    }
-  });
-
-  elements.nextButton.addEventListener("click", pickNextQuestion);
-  elements.randomQuestionButton.addEventListener("click", pickNextQuestion);
-  elements.shuffleFilteredButton.addEventListener("click", pickNextQuestion);
-
-  elements.resetProgressButton.addEventListener("click", () => {
-    state.progress = {};
-    saveProgress();
-    updateProgressUI();
-    renderTopicMap();
-    applyFilters();
-  });
-
-  elements.clearTopicButton.addEventListener("click", () => {
-    state.selectedTopic = "all";
-    renderTopicMap();
-    applyFilters();
-  });
-}
-
-function init() {
-  renderDifficultyPills();
-  renderLikelihoodPills();
-  renderTopicMap();
-  bindEvents();
-  updateProgressUI();
-  applyFilters();
-  pickNextQuestion();
-}
-
-init();
