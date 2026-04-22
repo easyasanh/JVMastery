@@ -3,178 +3,166 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Fund and Games</title>
+    <title>JVMastery</title>
     <meta
       name="description"
-      content="A GitHub Pages-ready investment idle clicker about compounding capital, hiring analysts, and building a market-moving fund."
+      content="A GitHub Pages-ready core Java theory question bank with self-scored mark schemes and topic mastery tracking."
     />
-    <link rel="icon" type="image/svg+xml" href="./favicon.svg?v=20260422-1" />
-    <link rel="stylesheet" href="./styles.css?v=20260422-1" />
+    <link rel="icon" type="image/svg+xml" href="./favicon.svg?v=20260417-1" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css?v=20260418-2" />
   </head>
   <body>
-    <div class="market-tape" aria-hidden="true">
-      <div class="market-tape__track">
-        <span>SPY +0.8%</span><span>VIX -2.1%</span><span>AUM +12.4%</span><span>ALPHA +3.2</span>
-        <span>IPO WINDOW OPEN</span><span>CREDIT TIGHTER</span><span>DATA EDGE +7%</span>
-        <span>SPY +0.8%</span><span>VIX -2.1%</span><span>AUM +12.4%</span><span>ALPHA +3.2</span>
-        <span>IPO WINDOW OPEN</span><span>CREDIT TIGHTER</span><span>DATA EDGE +7%</span>
-      </div>
-    </div>
-
-    <div class="app-shell">
-      <header class="topbar">
-        <div class="brand">
-          <img src="./logo.svg?v=20260422-1" alt="" class="brand__mark" />
-          <div>
-            <p class="brand__eyebrow">Investment idle clicker</p>
-            <h1>Fund and Games</h1>
+    <div class="page-shell">
+      <header class="hero">
+        <div class="hero__copy">
+          <div class="brand-lockup">
+            <img src="./logo.svg?v=20260417-1" alt="JVMastery logo" class="brand-lockup__logo" />
+            <span class="brand-lockup__name">JVMastery</span>
+          </div>
+          <p class="eyebrow">Core Java Theory Bank</p>
+          <h1>Build a deep, searchable bank of core Java knowledge.</h1>
+          <p class="hero__text">
+            Study hundreds of core Java theory questions with hints, concise
+            answers, and mark schemes, then score yourself to see which topics
+            are strong and which ones still need work.
+          </p>
+          <div class="hero__actions">
+            <button id="random-question-button" class="button button--primary">
+              Open Random Question
+            </button>
+            <button id="reset-progress-button" class="button button--ghost">
+              Reset Progress
+            </button>
           </div>
         </div>
-        <div class="topbar__actions">
-          <button id="save-button" class="icon-button" type="button" title="Save game" aria-label="Save game">
-            <svg aria-hidden="true" viewBox="0 0 24 24">
-              <path d="M5 3h12l2 2v16H5z" />
-              <path d="M8 3v6h8V3M8 18h8" />
-            </svg>
-          </button>
-          <button id="reset-button" class="icon-button" type="button" title="Reset save" aria-label="Reset save">
-            <svg aria-hidden="true" viewBox="0 0 24 24">
-              <path d="M6 8a7 7 0 1 1 1 9" />
-              <path d="M6 4v4h4" />
-            </svg>
-          </button>
+        <div class="hero__stats">
+          <div class="stat-card">
+            <span class="stat-card__label">Question Bank</span>
+            <strong id="question-count">0</strong>
+          </div>
+          <div class="stat-card">
+            <span class="stat-card__label">Attempted</span>
+            <strong id="attempted-count">0</strong>
+          </div>
+          <div class="stat-card">
+            <span class="stat-card__label">Average Score</span>
+            <strong id="average-score">0%</strong>
+          </div>
         </div>
       </header>
 
-      <main class="game-grid">
-        <section class="terminal-panel">
-          <div class="terminal-panel__header">
-            <div>
-              <p class="section-label">Current mandate</p>
-              <h2 id="stage-name">Retail Account</h2>
+      <main class="main-stack">
+        <section class="filters panel">
+          <div class="filters__bar">
+            <div class="filters__group">
+              <span class="filters__label">Difficulty</span>
+              <div id="difficulty-pills" class="pill-grid"></div>
             </div>
-            <span id="stage-progress-label" class="stage-chip">Layer 1 / 10</span>
-          </div>
 
-          <div class="screen">
-            <div class="screen__grid" aria-hidden="true"></div>
-            <svg id="market-chart" class="market-chart" viewBox="0 0 620 260" role="img" aria-label="Animated portfolio performance chart">
-              <defs>
-                <linearGradient id="chartFill" x1="0" x2="0" y1="0" y2="1">
-                  <stop offset="0%" stop-color="#35c37d" stop-opacity="0.32" />
-                  <stop offset="100%" stop-color="#35c37d" stop-opacity="0.02" />
-                </linearGradient>
-              </defs>
-              <path id="chart-area" class="chart-area" d="" />
-              <path id="chart-line" class="chart-line" d="" />
-              <g id="chart-dots"></g>
-            </svg>
-            <div class="screen__readout">
-              <span>Terminal</span>
-              <strong id="terminal-status">Researching mispriced opportunities</strong>
+            <div class="filters__group">
+              <span class="filters__label">Likelihood</span>
+              <div id="likelihood-pills" class="pill-grid"></div>
             </div>
-          </div>
 
-          <div class="hero-stats">
-            <div class="metric metric--primary">
-              <span>Capital</span>
-              <strong id="capital-value">$0</strong>
-            </div>
-            <div class="metric">
-              <span>Returns / sec</span>
-              <strong id="income-value">$0</strong>
-            </div>
-            <div class="metric">
-              <span>Research / click</span>
-              <strong id="click-value">$0</strong>
-            </div>
+            <button id="shuffle-filtered-button" class="button button--ghost">
+              Random From Filters
+            </button>
           </div>
-
-          <button id="research-button" class="research-button" type="button">
-            <span>Research Trade</span>
-            <small id="research-button-subtitle">Turn attention into capital</small>
-          </button>
         </section>
 
-        <aside class="side-stack">
-          <section class="panel compact-panel">
-            <div class="panel__header">
-              <div>
-                <p class="section-label">Fund health</p>
-                <h2>Scoreboard</h2>
-              </div>
-            </div>
-            <div class="score-grid">
-              <div><span>AUM</span><strong id="aum-value">$0</strong></div>
-              <div><span>Reputation</span><strong id="reputation-value">0</strong></div>
-              <div><span>Data</span><strong id="data-value">0</strong></div>
-              <div><span>Risk</span><strong id="risk-value">0%</strong></div>
-            </div>
-            <div class="progress-block">
-              <div class="progress-block__label">
-                <span id="next-stage-copy">Raise capital to reach Investment Club</span>
-                <strong id="stage-progress-percent">0%</strong>
-              </div>
-              <div class="progress-track">
-                <div id="stage-progress-bar" class="progress-fill"></div>
-              </div>
-            </div>
-          </section>
-
-          <section class="panel compact-panel">
-            <div class="panel__header">
-              <div>
-                <p class="section-label">Track record</p>
-                <h2>Close the Fund</h2>
-              </div>
-            </div>
-            <p class="muted">
-              Lock in a track record, reset capital, and begin again with a permanent return multiplier.
-            </p>
-            <div class="legacy-box">
-              <span>Track Record</span>
-              <strong id="legacy-value">0.00x</strong>
-            </div>
-            <button id="prestige-button" class="button button--dark" type="button" disabled>Close Fund</button>
-          </section>
-        </aside>
-
-        <section class="panel upgrades-panel">
-          <div class="panel__header">
+        <section class="mastery panel">
+          <div class="panel__header mastery__header">
             <div>
-              <p class="section-label">Buy side</p>
-              <h2>Upgrades</h2>
+              <h2>Topic Mastery Map</h2>
+              <p>See your strongest topics, weak spots, and focus one area at a time.</p>
             </div>
-            <div class="upgrade-controls">
-              <div class="tabs" role="tablist" aria-label="Upgrade categories">
-                <button class="tab is-active" type="button" data-category="research">Research</button>
-                <button class="tab" type="button" data-category="people">People</button>
-                <button class="tab" type="button" data-category="strategy">Strategy</button>
-              </div>
-              <div class="buy-modes" role="group" aria-label="Buy amount">
-                <button class="buy-mode is-active" type="button" data-buy-mode="one">1x</button>
-                <button class="buy-mode" type="button" data-buy-mode="milestone">Next</button>
-                <button class="buy-mode" type="button" data-buy-mode="max">Max</button>
-              </div>
-            </div>
+            <button id="clear-topic-button" class="button button--ghost">Show All Topics</button>
           </div>
-          <div id="upgrade-list" class="upgrade-list"></div>
+          <div id="mastery-summary" class="deck-summary"></div>
+          <div id="topic-map" class="topic-map"></div>
         </section>
 
-        <section class="panel milestones-panel">
-          <div class="panel__header">
-            <div>
-              <p class="section-label">Progression</p>
-              <h2>Mandates</h2>
+        <section class="practice">
+          <article class="question-card panel">
+            <div class="question-card__meta">
+              <span id="question-topic" class="pill">Topic</span>
+              <span id="question-difficulty" class="pill pill--difficulty">Difficulty</span>
+              <span id="question-likelihood" class="pill pill--likelihood">Likelihood</span>
             </div>
-          </div>
-          <div id="stage-list" class="stage-list"></div>
+
+            <div class="question-card__body">
+              <p class="question-label">Question</p>
+              <h2 id="question-prompt">Choose a filter and start practicing.</h2>
+              <div id="question-hint" class="answer answer--hint answer--hidden" aria-live="polite">
+                <p class="question-label">Hint</p>
+                <p id="question-hint-text"></p>
+              </div>
+              <div id="question-answer" class="answer answer--hidden" aria-live="polite">
+                <p class="question-label">Answer</p>
+                <p id="question-answer-text"></p>
+                <p class="question-label question-label--spaced">Mark Scheme</p>
+                <ol id="question-mark-scheme" class="mark-scheme"></ol>
+                <div class="score-box">
+                  <div class="score-box__header">
+                    <p class="question-label">Score Yourself</p>
+                    <span id="score-state" class="score-state"></span>
+                  </div>
+                  <div id="score-buttons" class="score-buttons"></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="question-card__actions">
+              <button id="hint-button" class="button button--ghost">Show Hint</button>
+              <button id="reveal-button" class="button button--primary">Reveal Answer</button>
+              <button id="next-button" class="button button--ghost">Next Question</button>
+            </div>
+          </article>
+
+          <section class="question-tools panel">
+            <div class="panel__header">
+              <h2>Scoring</h2>
+              <p>Reveal the answer, check the mark scheme, and score how many points you got.</p>
+            </div>
+
+            <div class="progress-bars">
+              <div>
+                <div class="progress-label">
+                  <span>Attempt coverage</span>
+                  <span id="attempted-percent">0%</span>
+                </div>
+                <div class="progress-track"><div id="attempted-bar" class="progress-fill"></div></div>
+              </div>
+              <div>
+                <div class="progress-label">
+                  <span>Average score</span>
+                  <span id="score-percent">0%</span>
+                </div>
+                <div class="progress-track"><div id="score-bar" class="progress-fill progress-fill--accent"></div></div>
+              </div>
+            </div>
+
+            <div id="deck-summary" class="deck-summary"></div>
+          </section>
         </section>
       </main>
 
-      <div id="toast" class="toast" role="status" aria-live="polite"></div>
+      <section class="library panel">
+        <div class="panel__header">
+          <h2>Question Library</h2>
+          <p>Browse the current filtered deck and open any question directly.</p>
+        </div>
+        <div id="question-list" class="question-list"></div>
+      </section>
     </div>
 
-    <script src="./app.js?v=20260422-1"></script>
+    <script src="./questions.js?v=20260417-2"></script>
+    <script src="./app.js?v=20260418-3"></script>
   </body>
 </html>
