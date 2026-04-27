@@ -19,6 +19,7 @@ The question bank focuses on:
 - Difficulty labels: `Easy`, `Medium`, `Hard`, `Difficult`
 - Percentage likelihood estimates for each question
 - Difficulty, likelihood, topic, and progress-focused practice flows
+- Core Java focus by default, with optional Spring and design-pattern filters
 - Answer reveal flow for self-testing
 - Topic mastery and average score tracking with `localStorage`
 - GitHub Pages workflow included

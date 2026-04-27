@@ -351,6 +351,12 @@ select {
   border-color: #e2e8f0;
 }
 
+.pill--scope {
+  background: #fff7ed;
+  color: #9a3412;
+  border-color: #fed7aa;
+}
+
 button.pill {
   cursor: pointer;
 }
@@ -371,6 +377,12 @@ button.pill {
   background: #334155;
   color: #f8fafc;
   border-color: #334155;
+}
+
+.pill--scope.pill--active {
+  background: #c2410c;
+  color: #fff7ed;
+  border-color: #c2410c;
 }
 
 .question-label {

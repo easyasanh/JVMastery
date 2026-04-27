@@ -6,6 +6,10 @@ const LIKELIHOOD_OPTIONS = [
   { value: "80", label: "80-89%" },
   { value: "75", label: "75-79%" }
 ];
+const SCOPE_OPTIONS = [
+  { key: "includeSpring", label: "Spring" },
+  { key: "includeDesignPatterns", label: "Design patterns" }
+];
 
 const questions = (window.questionsBank ?? []).map(enrichQuestion);
 const state = {
@@ -14,6 +18,8 @@ const state = {
   selectedDifficulty: "all",
   selectedLikelihood: "all",
   selectedTopic: "all",
+  includeSpring: false,
+  includeDesignPatterns: false,
   hintVisible: false,
   answerVisible: false,
   progress: loadProgress()
@@ -25,6 +31,7 @@ const elements = {
   averageScore: document.querySelector("#average-score"),
   difficultyPills: document.querySelector("#difficulty-pills"),
   likelihoodPills: document.querySelector("#likelihood-pills"),
+  scopePills: document.querySelector("#scope-pills"),
   topicMap: document.querySelector("#topic-map"),
   masterySummary: document.querySelector("#mastery-summary"),
   clearTopicButton: document.querySelector("#clear-topic-button"),
@@ -58,8 +65,18 @@ function enrichQuestion(question) {
   return {
     ...question,
     likelihood: Number(question.likelihood),
+    scope: getQuestionScope(question),
     markScheme,
     totalMarks: markScheme.length
+  };
+}
+
+function getQuestionScope(question) {
+  const prompt = question.prompt.toLowerCase();
+
+  return {
+    spring: question.topic === "Spring & Backend",
+    designPatterns: prompt.includes("design pattern")
   };
 }
 
@@ -196,11 +213,12 @@ function setCurrentQuestion(questionId) {
 }
 
 function getTopicStats() {
-  const topics = [...new Set(questions.map((question) => question.topic))];
+  const availableQuestions = getAvailableQuestions();
+  const topics = [...new Set(availableQuestions.map((question) => question.topic))];
 
   return topics
     .map((topic) => {
-      const topicQuestions = questions.filter((question) => question.topic === topic);
+      const topicQuestions = availableQuestions.filter((question) => question.topic === topic);
       const attemptedQuestions = topicQuestions.filter((question) => isAttempted(question.id));
       const earnedMarks = topicQuestions.reduce((sum, question) => {
         const score = getQuestionScore(question);
@@ -252,7 +270,26 @@ function getTopicStats() {
     });
 }
 
+function getAvailableQuestions() {
+  return questions.filter(matchesScope);
+}
+
+function ensureSelectedTopicIsAvailable() {
+  if (state.selectedTopic === "all") {
+    return;
+  }
+
+  const topicIsAvailable = getAvailableQuestions().some(
+    (question) => question.topic === state.selectedTopic
+  );
+
+  if (!topicIsAvailable) {
+    state.selectedTopic = "all";
+  }
+}
+
 function renderTopicMap() {
+  ensureSelectedTopicIsAvailable();
   const topicStats = getTopicStats();
   elements.topicMap.innerHTML = "";
 
@@ -385,6 +422,24 @@ function renderLikelihoodPills() {
   });
 }
 
+function renderScopePills() {
+  elements.scopePills.innerHTML = "";
+
+  SCOPE_OPTIONS.forEach((option) => {
+    const pill = document.createElement("button");
+    pill.type = "button";
+    pill.className = `pill pill--scope ${state[option.key] ? "pill--active" : ""}`.trim();
+    pill.textContent = option.label;
+    pill.setAttribute("aria-pressed", String(state[option.key]));
+    pill.addEventListener("click", () => {
+      state[option.key] = !state[option.key];
+      renderScopePills();
+      applyFilters();
+    });
+    elements.scopePills.append(pill);
+  });
+}
+
 function matchesLikelihood(question, selectedLikelihood) {
   if (selectedLikelihood === "all") {
     return true;
@@ -406,7 +461,20 @@ function matchesLikelihood(question, selectedLikelihood) {
   return false;
 }
 
+function matchesScope(question) {
+  if (question.scope.spring && !state.includeSpring) {
+    return false;
+  }
+
+  if (question.scope.designPatterns && !state.includeDesignPatterns) {
+    return false;
+  }
+
+  return true;
+}
+
 function applyFilters() {
+  ensureSelectedTopicIsAvailable();
   const difficulty = state.selectedDifficulty;
   const likelihood = state.selectedLikelihood;
   const topic = state.selectedTopic;
@@ -415,8 +483,9 @@ function applyFilters() {
     const matchesDifficulty = difficulty === "all" || question.difficulty === difficulty;
     const matchesLikelihoodRange = matchesLikelihood(question, likelihood);
     const matchesTopic = topic === "all" || question.topic === topic;
+    const matchesCurrentScope = matchesScope(question);
 
-    return matchesDifficulty && matchesLikelihoodRange && matchesTopic;
+    return matchesDifficulty && matchesLikelihoodRange && matchesTopic && matchesCurrentScope;
   });
 
   renderTopicMap();
@@ -432,6 +501,10 @@ function renderDeckSummary() {
   const total = state.filteredQuestions.length;
   const topicPrefix =
     state.selectedTopic === "all" ? "All topics." : `Topic focus: ${state.selectedTopic}.`;
+  const scopeSummary = [
+    state.includeSpring ? "Spring included" : "Spring hidden",
+    state.includeDesignPatterns ? "design patterns included" : "design patterns hidden"
+  ].join(" · ");
   const difficultySummary = DIFFICULTY_OPTIONS
     .map(
       (difficulty) =>
@@ -444,7 +517,7 @@ function renderDeckSummary() {
 
   elements.deckSummary.textContent =
     total > 0
-      ? `${topicPrefix} ${total} questions in the current deck. ${difficultySummary}. ${likelihoodSummary}.`
+      ? `${topicPrefix} ${scopeSummary}. ${total} questions in the current deck. ${difficultySummary}. ${likelihoodSummary}.`
       : "No questions match the current filters yet.";
 }
 
@@ -635,6 +708,7 @@ function bindEvents() {
 function init() {
   renderDifficultyPills();
   renderLikelihoodPills();
+  renderScopePills();
   renderTopicMap();
   bindEvents();
   updateProgressUI();
