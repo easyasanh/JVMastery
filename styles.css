@@ -10,7 +10,7 @@
   --border: #e2e8f0;
   --border-strong: #cbd5e1;
   --shadow: 0 10px 28px rgba(15, 23, 42, 0.06);
-  --radius: 18px;
+  --radius: 8px;
 }
 
 * {
@@ -68,14 +68,14 @@ select {
 .brand-lockup__logo {
   width: 42px;
   height: 42px;
-  border-radius: 12px;
+  border-radius: 8px;
   flex-shrink: 0;
 }
 
 .brand-lockup__name {
   font-size: 1rem;
   font-weight: 700;
-  letter-spacing: -0.03em;
+  letter-spacing: 0;
   color: var(--text);
 }
 
@@ -92,7 +92,7 @@ select {
   margin: 0;
   font-size: clamp(2.3rem, 4vw, 4rem);
   line-height: 1;
-  letter-spacing: -0.04em;
+  letter-spacing: 0;
 }
 
 .hero__text {
@@ -118,7 +118,7 @@ select {
 
 .stat-card {
   padding: 18px;
-  border-radius: 14px;
+  border-radius: 8px;
   background: var(--surface-muted);
   border: 1px solid var(--border);
 }
@@ -127,7 +127,7 @@ select {
   display: block;
   font-size: 2.1rem;
   margin-top: 4px;
-  letter-spacing: -0.04em;
+  letter-spacing: 0;
 }
 
 .stat-card__label {
@@ -199,7 +199,7 @@ select {
 
 .topic-card {
   padding: 18px;
-  border-radius: 16px;
+  border-radius: 8px;
   border: 1px solid var(--border);
   background: linear-gradient(180deg, #fff 0%, #f8fafc 100%);
   text-align: left;
@@ -272,7 +272,7 @@ select {
 
 .button {
   border: 1px solid transparent;
-  border-radius: 999px;
+  border-radius: 8px;
   padding: 11px 16px;
   cursor: pointer;
   transition:
@@ -331,7 +331,7 @@ select {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  border-radius: 999px;
+  border-radius: 8px;
   padding: 7px 12px;
   background: #eff6ff;
   color: var(--primary-strong);
@@ -390,13 +390,13 @@ button.pill {
   margin: 0;
   font-size: clamp(1.6rem, 2.3vw, 2.5rem);
   line-height: 1.15;
-  letter-spacing: -0.03em;
+  letter-spacing: 0;
 }
 
 .answer {
   margin-top: 16px;
   padding: 18px;
-  border-radius: 14px;
+  border-radius: 8px;
   background: var(--surface-muted);
   border: 1px solid var(--border);
 }
@@ -460,7 +460,7 @@ button.pill {
   border: 1px solid var(--border);
   background: #fff;
   color: var(--text);
-  border-radius: 999px;
+  border-radius: 8px;
   padding: 10px 14px;
   font-weight: 600;
   cursor: pointer;
@@ -504,7 +504,7 @@ button.pill {
 .progress-track {
   overflow: hidden;
   height: 10px;
-  border-radius: 999px;
+  border-radius: 8px;
   background: #e2e8f0;
 }
 
@@ -521,7 +521,7 @@ button.pill {
 
 .deck-summary {
   padding: 14px 16px;
-  border-radius: 14px;
+  border-radius: 8px;
   background: var(--surface-muted);
   border: 1px solid var(--border);
   color: var(--muted);
@@ -541,7 +541,7 @@ button.pill {
 
 .question-list__item {
   padding: 16px;
-  border-radius: 14px;
+  border-radius: 8px;
   background: #fff;
   border: 1px solid var(--border);
   cursor: pointer;
@@ -562,7 +562,7 @@ button.pill {
   margin: 12px 0;
   font-size: 1rem;
   line-height: 1.35;
-  letter-spacing: -0.01em;
+  letter-spacing: 0;
 }
 
 .question-list__meta {

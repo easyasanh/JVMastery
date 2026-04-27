@@ -1,4 +1,11 @@
-const STORAGE_KEY = "jvmastry-progress-v4";
+const STORAGE_KEY = "jvmastry-progress-v5";
+const DIFFICULTY_OPTIONS = ["Easy", "Medium", "Hard", "Difficult"];
+const LIKELIHOOD_OPTIONS = [
+  { value: "all", label: "All" },
+  { value: "90", label: "90%+" },
+  { value: "80", label: "80-89%" },
+  { value: "75", label: "75-79%" }
+];
 
 const questions = (window.questionsBank ?? []).map(enrichQuestion);
 const state = {
@@ -50,6 +57,7 @@ function enrichQuestion(question) {
   const markScheme = buildMarkScheme(question);
   return {
     ...question,
+    likelihood: Number(question.likelihood),
     markScheme,
     totalMarks: markScheme.length
   };
@@ -347,7 +355,7 @@ function renderFilterPills(container, options, selected, variantClass, onSelect)
 function renderDifficultyPills() {
   renderFilterPills(
     elements.difficultyPills,
-    ["all", "Beginner", "Intermediate", "Advanced"],
+    ["all", ...DIFFICULTY_OPTIONS],
     state.selectedDifficulty,
     "pill--difficulty",
     (option) => {
@@ -359,17 +367,43 @@ function renderDifficultyPills() {
 }
 
 function renderLikelihoodPills() {
-  renderFilterPills(
-    elements.likelihoodPills,
-    ["all", "Very Common", "Common", "Occasional", "Rare"],
-    state.selectedLikelihood,
-    "pill--likelihood",
-    (option) => {
-      state.selectedLikelihood = option;
+  elements.likelihoodPills.innerHTML = "";
+
+  LIKELIHOOD_OPTIONS.forEach((option) => {
+    const pill = document.createElement("button");
+    pill.type = "button";
+    pill.className = `pill pill--likelihood ${
+      state.selectedLikelihood === option.value ? "pill--active" : ""
+    }`.trim();
+    pill.textContent = option.label;
+    pill.addEventListener("click", () => {
+      state.selectedLikelihood = option.value;
       renderLikelihoodPills();
       applyFilters();
-    }
-  );
+    });
+    elements.likelihoodPills.append(pill);
+  });
+}
+
+function matchesLikelihood(question, selectedLikelihood) {
+  if (selectedLikelihood === "all") {
+    return true;
+  }
+
+  const likelihood = question.likelihood;
+  if (selectedLikelihood === "90") {
+    return likelihood >= 90;
+  }
+
+  if (selectedLikelihood === "80") {
+    return likelihood >= 80 && likelihood < 90;
+  }
+
+  if (selectedLikelihood === "75") {
+    return likelihood >= 75 && likelihood < 80;
+  }
+
+  return false;
 }
 
 function applyFilters() {
@@ -379,10 +413,10 @@ function applyFilters() {
 
   state.filteredQuestions = questions.filter((question) => {
     const matchesDifficulty = difficulty === "all" || question.difficulty === difficulty;
-    const matchesLikelihood = likelihood === "all" || question.likelihood === likelihood;
+    const matchesLikelihoodRange = matchesLikelihood(question, likelihood);
     const matchesTopic = topic === "all" || question.topic === topic;
 
-    return matchesDifficulty && matchesLikelihood && matchesTopic;
+    return matchesDifficulty && matchesLikelihoodRange && matchesTopic;
   });
 
   renderTopicMap();
@@ -398,17 +432,14 @@ function renderDeckSummary() {
   const total = state.filteredQuestions.length;
   const topicPrefix =
     state.selectedTopic === "all" ? "All topics." : `Topic focus: ${state.selectedTopic}.`;
-  const difficultySummary = ["Beginner", "Intermediate", "Advanced"]
+  const difficultySummary = DIFFICULTY_OPTIONS
     .map(
       (difficulty) =>
         `${difficulty}: ${state.filteredQuestions.filter((q) => q.difficulty === difficulty).length}`
     )
     .join(" · ");
-  const likelihoodSummary = ["Very Common", "Common", "Occasional", "Rare"]
-    .map(
-      (likelihood) =>
-        `${likelihood}: ${state.filteredQuestions.filter((q) => q.likelihood === likelihood).length}`
-    )
+  const likelihoodSummary = LIKELIHOOD_OPTIONS.filter((option) => option.value !== "all")
+    .map((option) => `${option.label}: ${state.filteredQuestions.filter((q) => matchesLikelihood(q, option.value)).length}`)
     .join(" · ");
 
   elements.deckSummary.textContent =
@@ -481,7 +512,7 @@ function renderCurrentQuestion() {
 
   elements.questionTopic.textContent = question.topic;
   elements.questionDifficulty.textContent = question.difficulty;
-  elements.questionLikelihood.textContent = question.likelihood;
+  elements.questionLikelihood.textContent = `${question.likelihood}% likely`;
   elements.questionPrompt.textContent = question.prompt;
   elements.hintText.textContent = question.hint;
   elements.answerText.textContent = question.answer;
@@ -529,7 +560,7 @@ function renderQuestionList() {
 
     const likelihood = document.createElement("span");
     likelihood.className = "pill pill--likelihood";
-    likelihood.textContent = question.likelihood;
+    likelihood.textContent = `${question.likelihood}% likely`;
 
     meta.append(topic, difficulty, likelihood);
 

@@ -1,23 +1,26 @@
 # JVMastery
 
-JVMastery is a static core Java interview practice app designed to deploy cleanly to GitHub Pages with no build step. It includes hundreds of questions focused on:
+JVMastery is a static Java interview practice app designed to deploy cleanly to GitHub Pages with no build step. It includes the top 100 likely prompts for a mid-senior Java interview, including easy calibration questions and deeper trade-off questions.
+
+The question bank focuses on:
 
 - language fundamentals
 - object-oriented programming
 - exceptions
 - strings and immutability
 - interfaces, inheritance, and polymorphism
-- records, enums, sealed classes, and modern Java features
-- JVM essentials and memory behavior
+- streams, lambdas, records, sealed classes, and modern Java features
+- JVM essentials, memory behavior, and garbage collection
+- Spring Boot, persistence, testing, observability, and architecture trade-offs
 
 ## Features
 
-- 300+ core Java interview questions
-- Difficulty labels: `Beginner`, `Intermediate`, `Advanced`
-- Likelihood labels: `Very Common`, `Common`, `Occasional`, `Rare`
-- Search, difficulty, likelihood, and progress filters
+- 100 curated Java interview questions
+- Difficulty labels: `Easy`, `Medium`, `Hard`, `Difficult`
+- Percentage likelihood estimates for each question
+- Difficulty, likelihood, topic, and progress-focused practice flows
 - Answer reveal flow for self-testing
-- Local progress tracking with `localStorage`
+- Topic mastery and average score tracking with `localStorage`
 - GitHub Pages workflow included
 
 ## Local usage
@@ -40,4 +43,4 @@ Then visit `http://localhost:8080`.
 
 ## Content model
 
-Questions are defined in [`app.js`](/Users/Andrew/Documents/New%20project/app.js). The bank is generated from a large set of core Java theory subjects, each expanded into multiple interview-style prompts and annotated with both difficulty and likelihood so common questions stay easy to prioritize.
+Questions are defined in [`questions.js`](/Users/Andrew/Documents/New%20project/questions.js). Likelihood percentages are practical estimates based on recurring Java interview patterns rather than measured probabilities from one employer.
